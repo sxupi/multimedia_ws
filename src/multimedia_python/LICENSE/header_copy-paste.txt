@@ -1,0 +1,6 @@
+# This file is part of the multimedia_tools project.
+# Copyright (c) 2025 Your Name
+#
+# Licensed under the GNU GPL v3 (or later).
+#
+# See https://www.gnu.org/licenses/gpl-3.0.txt for full text.

@@ -1,24 +1,39 @@
-/build/*
-/.vscode/*
-/log/*
-/install/*
-
-# ROS 2 workspaces
+# === ROS 2 workspaces ===
 ros2_ws/build/
 ros2_ws/install/
 ros2_ws/log/
 
-# micro-ROS workspace
-microros_ws/build/
-microros_ws/install/
-microros_ws/log/
+# === micro-ROS firmware workspaces ===
+microros_ws/firmware/dev_ws/build/
+microros_ws/firmware/dev_ws/install/
+microros_ws/firmware/dev_ws/log/
 
-# firmware build artifacts (names vary a bit by config)
+microros_ws/firmware/mcu_ws/build/
+microros_ws/firmware/mcu_ws/install/
+microros_ws/firmware/mcu_ws/log/
+
 microros_ws/firmware/build/
-microros_ws/firmware/uros_ws/build/
-microros_ws/firmware/uros_ws/install/
-microros_ws/firmware/uros_ws/log/
+microros_ws/firmware/toolchain/
 
-# VSCode, etc.
+microros_ws/firmware/PLATFORM
+microros_ws/firmware/COLCON_IGNORE
+microros_ws/firmware/ros2.repos
+microros_ws/firmware/colcon.meta
+microros_ws/firmware/dev_ws/*
+microros_ws/firmware/mcu_ws/*
+
+microros_ws/firmware/toolchain/
+
+# auto-downloaded micro-ROS extensions
+microros_ws/firmware/freertos_apps/microros_*_extensions/
+
+# generic build dirs anywhere (safety net)
+**/build/
+**/install/
+**/log/
+
+# editor junk
 .vscode/
+.idea/
 *.swp
+*.DS_Store

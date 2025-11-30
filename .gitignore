@@ -2,3 +2,23 @@
 /.vscode/*
 /log/*
 /install/*
+
+# ROS 2 workspaces
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# micro-ROS workspace
+microros_ws/build/
+microros_ws/install/
+microros_ws/log/
+
+# firmware build artifacts (names vary a bit by config)
+microros_ws/firmware/build/
+microros_ws/firmware/uros_ws/build/
+microros_ws/firmware/uros_ws/install/
+microros_ws/firmware/uros_ws/log/
+
+# VSCode, etc.
+.vscode/
+*.swp

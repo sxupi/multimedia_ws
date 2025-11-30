@@ -10,7 +10,12 @@ microros_ws/firmware/toolchain/
 microros_ws/firmware/build/
 
 # auto-downloaded micro-ROS extensions
-microros_ws/firmware/freertos_apps/microros_*_extensions/
+microros_ws/firmware/freertos_apps/apps/microros_crazyflie21_extensions/
+microros_ws/firmware/freertos_apps/apps/microros_nucleo_f446re_extensions/
+microros_ws/firmware/freertos_apps/apps/microros_nucleo_f446ze_extensions/
+microros_ws/firmware/freertos_apps/apps/microros_nucleo_f746zg_extensions/
+microros_ws/firmware/freertos_apps/apps/microros_nucleo_f767zi_extensions/
+microros_ws/firmware/freertos_apps/apps/microros_olimex_e407_extensions/
 
 # generic build dirs anywhere (safety net)
 **/build/

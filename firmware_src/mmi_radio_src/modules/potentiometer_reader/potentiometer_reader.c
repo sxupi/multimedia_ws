@@ -12,7 +12,7 @@ typedef struct
     uint16_t       min_raw;
     uint16_t       max_raw;
     const char    *task_name;
-} knob_reader_task_cfg_t;
+} potentiometer_reader_task_cfg_t;
 
 static int map_raw_to_percent(int raw, uint16_t min_raw, uint16_t max_raw)
 {
@@ -34,9 +34,9 @@ static int map_raw_to_percent(int raw, uint16_t min_raw, uint16_t max_raw)
     return percent;
 }
 
-static void knob_reader_task(void *pvParameters)
+static void potentiometer_reader_task(void *pvParameters)
 {
-    knob_reader_task_cfg_t *cfg = (knob_reader_task_cfg_t *)pvParameters;
+    potentiometer_reader_task_cfg_t *cfg = (potentiometer_reader_task_cfg_t *)pvParameters;
 
     // ADC configuration (12-bit width, 0–3.3V approx with 11 dB attenuation)
     adc1_config_width(ADC_WIDTH_BIT_12);
@@ -60,14 +60,14 @@ static void knob_reader_task(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-BaseType_t knob_reader_start(const knob_reader_config_t *config,
+BaseType_t potentiometer_reader_start(const potentiometer_reader_config_t *config,
                              TaskHandle_t *out_task_handle)
 {
     if (config == NULL || config->output_queue == NULL) {
         return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
     }
 
-    knob_reader_task_cfg_t *cfg = pvPortMalloc(sizeof(knob_reader_task_cfg_t));
+    potentiometer_reader_task_cfg_t *cfg = pvPortMalloc(sizeof(potentiometer_reader_task_cfg_t));
     if (cfg == NULL) {
         return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
     }
@@ -77,11 +77,11 @@ BaseType_t knob_reader_start(const knob_reader_config_t *config,
     cfg->sample_period = config->sample_period;
     cfg->min_raw       = config->min_raw;
     cfg->max_raw       = config->max_raw;
-    cfg->task_name     = config->task_name ? config->task_name : "knob_reader";
+    cfg->task_name     = config->task_name ? config->task_name : "potentiometer_reader";
 
     TaskHandle_t handle = NULL;
     BaseType_t res = xTaskCreate(
-        knob_reader_task,
+        potentiometer_reader_task,
         cfg->task_name,
         config->task_stack_size > 0 ? config->task_stack_size : 2048,
         cfg,

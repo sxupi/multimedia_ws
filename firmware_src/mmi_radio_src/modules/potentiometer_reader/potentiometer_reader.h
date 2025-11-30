@@ -12,14 +12,14 @@ extern "C" {
 #endif
 
 /**
- * @brief Configuration for a single knob reader instance.
+ * @brief Configuration for a single potentiometer reader instance.
  *
- * You can create multiple knobs (e.g. volume + frequency) by using different
+ * You can create multiple potentiometers (e.g. volume + frequency) by using different
  * adc_channel and output_queue for each instance.
  */
 typedef struct
 {
-    adc1_channel_t adc_channel;     ///< ADC1 channel used for this knob
+    adc1_channel_t adc_channel;     ///< ADC1 channel used for this potentiometer
     QueueHandle_t  output_queue;    ///< Queue that receives int32_t percentage values (0–100)
     TickType_t     sample_period;   ///< Sampling period in FreeRTOS ticks
     uint16_t       min_raw;         ///< Raw ADC value mapped to 0%
@@ -27,10 +27,10 @@ typedef struct
     const char    *task_name;       ///< Optional: task name (for debugging)
     uint32_t       task_stack_size; ///< Stack size in words (not bytes!)
     UBaseType_t    task_priority;   ///< FreeRTOS task priority
-} knob_reader_config_t;
+} potentiometer_reader_config_t;
 
 /**
- * @brief Start a knob reader task using the given configuration.
+ * @brief Start a potentiometer reader task using the given configuration.
  *
  * The function:
  *  - Configures ADC1 width and attenuation
@@ -43,7 +43,7 @@ typedef struct
  * @param out_task_handle Optional: returned task handle (can be NULL).
  * @return pdPASS on success, or an error code from xTaskCreate if task creation fails.
  */
-BaseType_t knob_reader_start(const knob_reader_config_t *config,
+BaseType_t potentiometer_reader_start(const potentiometer_reader_config_t *config,
                              TaskHandle_t *out_task_handle);
 
 #ifdef __cplusplus

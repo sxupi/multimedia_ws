@@ -12,13 +12,13 @@
 #include <std_msgs/msg/int32.h>
 
 // ADC channels etc. are configured in the potentiometer module
-#include "modules/potentiometer_reader.h"
-#include "modules/volume_publisher.h"
+#include "modules/potentiometer_reader/potentiometer_reader.h"
+#include "modules/volume_publisher/volume_publisher.h"
 
 // IMPORTANT: in this micro-ROS FreeRTOS setup, only app.c is compiled.
 // We pull in module implementations here so they become part of this TU.
-#include "modules/potentiometer_reader.c"
-#include "modules/volume_publisher.c"
+#include "modules/potentiometer_reader/potentiometer_reader.c"
+#include "modules/volume_publisher/volume_publisher.c"
 
 // Provided by the micro-ROS platform layer for your board/transport
 // (UART, Wi-Fi, etc.). This is defined in the microros_esp32_extensions.

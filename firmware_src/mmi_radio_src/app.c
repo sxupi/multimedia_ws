@@ -9,106 +9,82 @@
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
 #include <std_msgs/msg/float32.h>
+#include <rcl/error_handling.h>
 
-#include "modules/potentiometer_control/potentiometer_control.h"
-#include "modules/volume_publisher/volume_publisher.h"
+#include "modules/rcchecker.c"
+#include "modules/volume_reader.c"
+#include "modules/volume_publisher.c"
+#include "modules/freq_reader.c"
+#include "modules/freq_publisher.c"
 
-static const char *TAG = "APP";
+static const char *MAIN_TAG = "APP";
 
-// ---- micro-ROS globals ----
-static rcl_allocator_t g_allocator;
-static rclc_support_t g_support;
-static rcl_node_t g_node;
-static rcl_publisher_t g_volume_pub;
-
-// Simple error handling macros
-#define RCCHECK(fn)                                                           \
-    do                                                                        \
-    {                                                                         \
-        rcl_ret_t rc = (fn);                                                  \
-        if (rc != RCL_RET_OK)                                                 \
-        {                                                                     \
-            ESP_LOGE(TAG, "Failed status on line %d: %d", __LINE__, (int)rc); \
-            return;                                                           \
-        }                                                                     \
-    } while (0)
-
-#define RCSOFTCHECK(fn)                                                          \
-    do                                                                           \
-    {                                                                            \
-        rcl_ret_t rc = (fn);                                                     \
-        if (rc != RCL_RET_OK)                                                    \
-        {                                                                        \
-            ESP_LOGW(TAG, "Soft fail status on line %d: %d", __LINE__, (int)rc); \
-        }                                                                        \
-    } while (0)
-
-// You can change this pin/channel as needed (ADC1 on ESP32)
-#define POT_ADC_CHANNEL ADC1_CHANNEL_6 // GPIO34
-
-// Queue length and type for raw ADC readings
-#define POT_QUEUE_LENGTH 16
-
-void app_main(void)
+void appMain(void)
 {
-    ESP_LOGI(TAG, "Starting mmi_mr_multimedia_src app...");
+    ESP_LOGI(MAIN_TAG, "Starting mmi_mr_multimedia_src app...");
 
-    // 1) Initialize micro-ROS core
-    g_allocator = rcl_get_default_allocator();
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    rclc_support_t support;
 
-    // Initialize the support structure (no CLI args)
-    RCCHECK(rclc_support_init(&g_support, 0, NULL, &g_allocator));
-
-    // Create node
+    // create init_options
+    ESP_LOGI(MAIN_TAG, "Initializing support and allocator...");
+    RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+    ESP_LOGI(MAIN_TAG, "Support and allocator initialized...");
+    
+    ESP_LOGI(MAIN_TAG, "Initializing node (mmi_esp32_node)...");
+    rcl_node_t node;
     RCCHECK(rclc_node_init_default(
-        &g_node,
-        "mmi_mr_multimedia_node",
+        &node,
+       "mmi_esp32_node",
         "",
-        &g_support));
+        &support));
+    ESP_LOGI(MAIN_TAG, "Node (mmi_esp32_node) initialized...");
 
-    // 2) Initialize volume publisher
-    //    Topic: /mmi/volume, Type: std_msgs/msg/Float32
-    RCCHECK(rclc_publisher_init_default(
-        &g_volume_pub,
-        &g_node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        "/mmi/volume"));
+    // Initialize the volume publisher
+    volume_publisher_init(&support, &allocator, &node);
+    // Initialize the frequency publisher
+    freq_publisher_init(&support, &allocator, &node);
 
-    ESP_LOGI(TAG, "micro-ROS node and volume publisher initialized.");
+    // -------------------------------------------------------------------------------
+    // Volume potentiometer reader and publisher 
+    // -------------------------------------------------------------------------------
+    // Initialize the volume (raw values) queue
+    QueueHandle_t volume_queue = xQueueCreate(10, sizeof(uint16_t));
+    // Start the volume (potentiometer) reader task
+    volume_reader_task_config_t volume_reader_cfg = {
+        .queue = volume_queue,
+        .change_threshold = 100,
+        .poll_delay = pdMS_TO_TICKS(50)};
+    volume_reader_task_start("volume_reader", 2048, 4, &volume_reader_cfg);
 
-    // 3) Create queue for ADC → volume pipeline
-    QueueHandle_t pot_queue = xQueueCreate(POT_QUEUE_LENGTH, sizeof(uint32_t));
-    if (pot_queue == NULL)
-    {
-        ESP_LOGE(TAG, "Failed to create pot_queue");
-        return;
-    }
-
-    // 4) Start potentiometer module (own task)
-    potentiometer_config_t pot_cfg = {
-        .adc_channel = POT_ADC_CHANNEL,
-        .output_queue = pot_queue,
-        .sample_period_ms = 50, // sample every 50ms; adjust as needed
-        .task_name = "pot_task",
-        .task_priority = 5,
-        .task_stack_size = 4096};
-    potentiometer_control_start(&pot_cfg);
-    ESP_LOGI(TAG, "Potentiometer control task started.");
-
-    // 5) Start volume publisher module (own task)
-    volume_publisher_config_t vol_cfg = {
-        .publisher = &g_volume_pub,
-        .input_queue = pot_queue,
-        .task_name = "volume_pub_task",
-        .task_priority = 6,
-        .task_stack_size = 4096,
-        .max_adc_value = 4095,  // 12-bit ADC
-        .log_raw_values = false // set true for debugging
+    // Start the volume publisher task to publish the values from potentiometer
+    volume_publisher_task_config_t volume_publisher_cfg = {
+        .queue = volume_queue
     };
-    volume_publisher_start(&vol_cfg);
-    ESP_LOGI(TAG, "Volume publisher task started.");
+    volume_publisher_task_start("volume_publisher", 4096, 4, &volume_publisher_cfg);
 
-    // 6) app_main task can gracefully end if nothing else to do
-    ESP_LOGI(TAG, "App initialization done, deleting app_main task.");
-    vTaskDelete(NULL); // Other tasks keep running
+    // -------------------------------------------------------------------------------
+    // Frequency potentiometer reader and publisher
+    // -------------------------------------------------------------------------------
+    // Initialize the frequency (raw values) queue
+    QueueHandle_t freq_queue = xQueueCreate(10, sizeof(uint16_t));
+
+    // Start the frequency (potentiometer) reader task
+    freq_reader_task_config_t freq_reader_cfg = {
+        .queue = freq_queue,
+        .change_threshold = 50,
+        .poll_delay = pdMS_TO_TICKS(50)};
+    freq_reader_task_start("freq_reader", 2048, 4, &freq_reader_cfg);
+
+    // Start the frequency publisher task to publish the values from potentiometer
+    freq_publisher_task_config_t freq_publisher_cfg = {
+        .queue = freq_queue
+    };
+    freq_publisher_task_start("freq_publisher", 4096, 4, &freq_publisher_cfg);
+
+
+    for (;;)
+    {
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
 }

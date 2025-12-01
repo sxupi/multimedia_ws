@@ -1,63 +1,109 @@
+// modules/volume_publisher/volume_publisher.c
 #include "volume_publisher.h"
-#include <stdio.h>
+
+#include "freertos/task.h"
+#include "esp_log.h"
+
+#include <rcl/rcl.h>
+#include <std_msgs/msg/float32.h>
+
+static const char *TAG = "VOL_PUB";
+
+typedef struct
+{
+    rcl_publisher_t *publisher;
+    QueueHandle_t input_queue;
+    uint32_t max_adc_value;
+    bool log_raw_values;
+} volume_publisher_task_ctx_t;
 
 static void volume_publisher_task(void *pvParameters)
 {
-    volume_publisher_config_t cfg = *(volume_publisher_config_t *)pvParameters;
-    vPortFree(pvParameters); // free copied config
+    volume_publisher_task_ctx_t *ctx =
+        (volume_publisher_task_ctx_t *)pvParameters;
 
-    int32_t value = 0;
+    if (ctx->publisher == NULL || ctx->input_queue == NULL)
+    {
+        ESP_LOGE(TAG, "Invalid volume publisher context");
+        vTaskDelete(NULL);
+        return;
+    }
 
-    for (;;) {
-        if (xQueueReceive(cfg.input_queue, &value, portMAX_DELAY) == pdTRUE) {
-            cfg.msg->data = value;
-            rcl_ret_t rc = rcl_publish(cfg.publisher, cfg.msg, NULL);
+    ESP_LOGI(TAG, "Volume publisher task started (max_adc=%u)",
+             (unsigned)ctx->max_adc_value);
 
-            if (rc != RCL_RET_OK) {
-                printf("volume_publisher: rcl_publish error %d\n", (int)rc);
+    std_msgs__msg__Float32 msg;
+    msg.data = 0.0f;
+
+    while (1)
+    {
+        uint32_t raw = 0;
+        if (xQueueReceive(ctx->input_queue, &raw, portMAX_DELAY))
+        {
+            if (ctx->max_adc_value == 0)
+            {
+                ctx->max_adc_value = 4095; // avoid division by zero
+            }
+
+            float norm = (float)raw / (float)ctx->max_adc_value;
+            if (norm < 0.0f)
+                norm = 0.0f;
+            if (norm > 1.0f)
+                norm = 1.0f;
+
+            msg.data = norm;
+
+            if (ctx->log_raw_values)
+            {
+                ESP_LOGI(TAG, "ADC raw=%u -> volume=%.3f", (unsigned)raw, (double)norm);
+            }
+
+            rcl_ret_t rc = rcl_publish(ctx->publisher, &msg, NULL);
+            if (rc != RCL_RET_OK)
+            {
+                ESP_LOGW(TAG, "rcl_publish failed: %d", (int)rc);
             }
         }
     }
 
+    // Never reached
     vTaskDelete(NULL);
 }
 
-BaseType_t volume_publisher_start(const volume_publisher_config_t *config,
-                                  TaskHandle_t *out_task_handle)
+void volume_publisher_start(const volume_publisher_config_t *config)
 {
-    if (config == NULL || config->input_queue == NULL ||
-        config->publisher == NULL || config->msg == NULL) {
-        return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+    if (config == NULL || config->publisher == NULL || config->input_queue == NULL)
+    {
+        ESP_LOGE(TAG, "Invalid volume_publisher_config_t");
+        return;
     }
 
-    volume_publisher_config_t *cfg_copy =
-        pvPortMalloc(sizeof(volume_publisher_config_t));
-    if (cfg_copy == NULL) {
-        return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+    volume_publisher_task_ctx_t *ctx =
+        (volume_publisher_task_ctx_t *)pvPortMalloc(sizeof(volume_publisher_task_ctx_t));
+    if (ctx == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to allocate volume_publisher_task_ctx_t");
+        return;
     }
 
-    *cfg_copy = *config; // shallow copy is enough here
+    ctx->publisher = config->publisher;
+    ctx->input_queue = config->input_queue;
+    ctx->max_adc_value = config->max_adc_value;
+    ctx->log_raw_values = config->log_raw_values;
 
-    const char *name = config->task_name ? config->task_name : "volume_publisher";
+    const char *task_name = (config->task_name != NULL) ? config->task_name : "volume_pub_task";
 
-    TaskHandle_t handle = NULL;
-    BaseType_t res = xTaskCreate(
+    BaseType_t ret = xTaskCreate(
         volume_publisher_task,
-        name,
-        config->task_stack_size > 0 ? config->task_stack_size : 4096,
-        cfg_copy,
+        task_name,
+        config->task_stack_size,
+        ctx,
         config->task_priority,
-        &handle
-    );
+        NULL);
 
-    if (res != pdPASS) {
-        vPortFree(cfg_copy);
-        return res;
+    if (ret != pdPASS)
+    {
+        ESP_LOGE(TAG, "Failed to create volume publisher task");
+        vPortFree(ctx);
     }
-
-    if (out_task_handle != NULL) {
-        *out_task_handle = handle;
-    }
-
-    return pdPASS;
 }

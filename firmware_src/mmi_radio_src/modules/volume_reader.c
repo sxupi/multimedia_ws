@@ -56,7 +56,7 @@ uint16_t read_volume_potentiometer_raw(void)
     }
 
     // Remove or comment out this log if it spams too much
-    //ESP_LOGI(VOLUME_READER_TAG, "Read raw ADC value: %d", raw);
+    // ESP_LOGI(VOLUME_READER_TAG, "Read raw ADC value: %d", raw);
 
     return (uint16_t)raw;
 }

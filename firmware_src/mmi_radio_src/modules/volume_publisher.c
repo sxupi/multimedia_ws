@@ -61,7 +61,7 @@ void volume_publisher_init(rclc_support_t *support, rcl_allocator_t *allocator, 
  * Task: wait for ADC values on the queue, convert to float, publish.
  * Expects queue elements of type uint16_t (0..4095).
  */
-static void volume_publisher_task(void *pvParameters)
+void volume_publisher_task(void *pvParameters)
 {
     volume_publisher_task_config_t *cfg =
         (volume_publisher_task_config_t *)pvParameters;

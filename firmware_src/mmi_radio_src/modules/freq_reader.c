@@ -69,7 +69,8 @@ void freq_reader_task(void *pvParameters)
     uint16_t last_value = read_freq_potentiometer_raw();
 
     // Optionally send the initial value once at startup
-    (void)xQueueSend(cfg->queue, &last_value, 0);
+    //(void)xQueueSend(cfg->queue, &last_value, 0);
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
     for (;;)
     {

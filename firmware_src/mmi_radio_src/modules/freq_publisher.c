@@ -89,6 +89,7 @@ static void freq_publisher_task(void *pvParameters)
                 normalized
             );
         }
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
 

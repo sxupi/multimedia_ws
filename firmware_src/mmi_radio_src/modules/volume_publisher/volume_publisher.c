@@ -16,7 +16,7 @@
 #define VOLUME_PUBLISHER_NODE_TAG "mmi_volume_publisher"
 #define VOLUME_PUBLISHER_TOPIC "volume_float32"
 
-#define VOLUME_PUBLISHER_CHANGE_THRESHOLD 100
+#define VOLUME_PUBLISHER_CHANGE_THRESHOLD 50
 #define VOLUME_PUBLISHER_TIMER_DELAY_MS 50
 
 // Global micro-ROS variables
@@ -40,7 +40,7 @@ void volume_publisher_timer_callback(rcl_timer_t *timer, int64_t last_call_time)
                             ? (current - volume_last_raw_value)
                             : (volume_last_raw_value - current);
 
-        if (diff > VOLUME_PUBLISHER_CHANGE_THRESHOLD)
+        if (diff >= VOLUME_PUBLISHER_CHANGE_THRESHOLD)
         {
             float normalized = (float)current / VOLUME_MAX_RAW_VALUE;
             volume_pub_msg.data = normalized;

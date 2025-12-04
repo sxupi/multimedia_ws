@@ -55,14 +55,14 @@ void volume_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
                                            ON_NEW_DATA));
     ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Subscriber was added to executor");
 
-    ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Initializing the LED bar")
+    ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Initializing the LED bar");
     led_bar_init();
-    ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "LED bar initialized")
+    ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "LED bar initialized");
 }
 
 void volume_subscriber_cleanup(void)
 {
     RCCHECK(rcl_subscription_fini(&volume_subscriber, &volume_sub_node));
     RCCHECK(rcl_node_fini(&volume_sub_node));
-    RCCHECK(std_msgs__msg__Float32__fini(&volume_sub_msg));
+    std_msgs__msg__Float32__fini(&volume_sub_msg);
 }

@@ -3,6 +3,7 @@
 
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
+#include <rclc/executor.h>
 #include <std_msgs/msg/float32.h>
 
 #include "esp_log.h"
@@ -86,9 +87,9 @@ void volume_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
     RCCHECK(rclc_executor_add_timer(executor, &volume_pub_timer));
     ESP_LOGI(VOLUME_PUBLISHER_TAG, "Timer was added to executor");
 
-    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Initializing the volume reader")
+    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Initializing the volume reader");
     volume_reader_init();
-    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Volume reader initialized")
+    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Volume reader initialized");
 
     // Do one read for initializing the reader
     volume_last_raw_value = read_volume_potentiometer_raw();
@@ -99,5 +100,5 @@ void volume_publisher_cleanup(void)
     RCCHECK(rcl_publisher_fini(&volume_publisher, &volume_pub_node));
     RCCHECK(rcl_timer_fini(&volume_pub_timer));
     RCCHECK(rcl_node_fini(&volume_pub_node));
-    RCCHECK(std_msgs__msg__Float32__fini(&volume_pub_msg));
+    std_msgs__msg__Float32__fini(&volume_pub_msg);
 }

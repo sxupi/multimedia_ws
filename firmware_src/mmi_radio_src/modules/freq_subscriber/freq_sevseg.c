@@ -56,11 +56,11 @@ static const uint8_t digit_patterns_active_high[10] = {
 #define DIGIT_BLANK 10
 
 // Four digits (0-9 or DIGIT_BLANK), index 0 = leftmost
-static volatile uint8_t s_digits[4] = {DIGIT_BLANK, DIGIT_BLANK, 0, 0};
+volatile uint8_t s_digits[4] = {DIGIT_BLANK, DIGIT_BLANK, 0, 0};
 // Decimal point flags (we'll only use the last digit, but keep generic)
-static volatile bool s_dp[4] = {false, false, false, true};
+volatile bool s_dp[4] = {false, false, false, true};
 
-static void gpio_set_output(gpio_num_t pin)
+void gpio_set_output(gpio_num_t pin)
 {
     gpio_config_t io_conf = {
         .pin_bit_mask = 1ULL << pin,
@@ -72,7 +72,7 @@ static void gpio_set_output(gpio_num_t pin)
     gpio_config(&io_conf);
 }
 
-static void shift_register_init(void)
+void shift_register_init(void)
 {
     gpio_set_output(SEVSEG_SR_DATA);
     gpio_set_output(SEVSEG_SR_CLK);
@@ -83,7 +83,7 @@ static void shift_register_init(void)
     gpio_set_level(SEVSEG_SR_LATCH, 0);
 }
 
-static void digit_pins_init(void)
+void digit_pins_init(void)
 {
     gpio_set_output(SEVSEG_DIGIT_0);
     gpio_set_output(SEVSEG_DIGIT_1);
@@ -98,7 +98,7 @@ static void digit_pins_init(void)
 }
 
 // Shift out 8 bits MSB first to the 7-seg 74HC595
-static void shift_register_write(uint8_t value)
+void shift_register_write(uint8_t value)
 {
     gpio_set_level(SEVSEG_SR_LATCH, 0); // latch low while shifting
 
@@ -113,7 +113,7 @@ static void shift_register_write(uint8_t value)
     gpio_set_level(SEVSEG_SR_LATCH, 1); // latch high to output
 }
 
-static void digits_all_off(void)
+void digits_all_off(void)
 {
     gpio_set_level(SEVSEG_DIGIT_0, 0);
     gpio_set_level(SEVSEG_DIGIT_1, 0);
@@ -121,7 +121,7 @@ static void digits_all_off(void)
     gpio_set_level(SEVSEG_DIGIT_3, 0);
 }
 
-static void digit_enable(unsigned int idx)
+void digit_enable(unsigned int idx)
 {
     switch (idx)
     {
@@ -142,7 +142,7 @@ static void digit_enable(unsigned int idx)
     }
 }
 
-static void sevenseg_refresh_task(void *arg)
+void sevenseg_refresh_task(void *arg)
 {
     // ChatGPT said, that there needs to be a background tasks running, altough I am not a fan of it
     // Maybe I will remove it later on

@@ -3,6 +3,7 @@
 
 #include <rcl/rcl.h>
 #include <rclc/rclc.h>
+#include <rclc/executor.h>
 #include <std_msgs/msg/float32.h>
 
 #include "driver/adc.h"
@@ -14,7 +15,7 @@
 // Static variables
 #define FREQ_PUBLISHER_TAG "FREQUENCY_PUBLISHER"
 #define FREQ_PUBLISHER_NODE_TAG "mmi_frequency_publisher"
-#define FREQ_PUBLISHER_TOPIC "frequency_float32
+#define FREQ_PUBLISHER_TOPIC "frequency_float32"
 
 #define FREQ_PUBLISHER_CHANGE_THRESHOLD 100
 #define FREQ_PUBLISHER_TIMER_DELAY_MS 50
@@ -87,9 +88,9 @@ void freq_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
     RCCHECK(rclc_executor_add_timer(executor, &freq_pub_timer));
     ESP_LOGI(FREQ_PUBLISHER_TAG, "Timer was added to executor");
 
-    ESP_LOGI(FREQ_PUBLISHER_TAG, "Initializing the frequency reader")
+    ESP_LOGI(FREQ_PUBLISHER_TAG, "Initializing the frequency reader");
     freq_reader_init();
-    ESP_LOGI(FREQ_PUBLISHER_TAG, "Frequency reader initialized")
+    ESP_LOGI(FREQ_PUBLISHER_TAG, "Frequency reader initialized");
 
     // Do one read for initializing the reader
     freq_last_raw_value = read_freq_potentiometer_raw();
@@ -100,5 +101,5 @@ void freq_publisher_cleanup(void)
     RCCHECK(rcl_publisher_fini(&freq_publisher, &freq_pub_node));
     RCCHECK(rcl_timer_fini(&freq_pub_timer));
     RCCHECK(rcl_node_fini(&freq_pub_node));
-    RCCHECK(std_msgs__msg__Float32__fini(&freq_pub_msg));
+    std_msgs__msg__Float32__fini(&freq_pub_msg);
 }

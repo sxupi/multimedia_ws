@@ -56,6 +56,8 @@ void appMain(void)
     volume_subscriber_init(&support, &executor);
     ESP_LOGI(MAIN_TAG, "Volume subscriber initialized");
 
+    // Maybe I need to delay it afterwards
+    // vTaskDelay(pdMS_TO_TICKS(250));
     ESP_LOGI(MAIN_TAG, "Initializing frequency subscriber");
     freq_subscriber_init(&support, &executor);
     ESP_LOGI(MAIN_TAG, "Frequency subscriber initialized");

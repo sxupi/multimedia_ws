@@ -7,7 +7,7 @@
 
 #include "esp_log.h"
 
-#include "rcchecker.c"
+#include "../rcchecker.c"
 #include "volume_reader.c"
 
 // Static variables

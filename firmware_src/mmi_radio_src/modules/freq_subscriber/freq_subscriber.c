@@ -3,7 +3,7 @@
 #include <rclc/executor.h>
 #include <std_msgs/msg/float32.h>
 
-#include "rcchecker.c"
+#include "../rcchecker.c"
 #include "freq_sevseg.c"
 
 #define FREQ_SUBSCRIBER_TAG "FREQUENCY_SUBSCRIBER"

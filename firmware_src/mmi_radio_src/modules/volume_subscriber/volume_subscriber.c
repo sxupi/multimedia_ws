@@ -3,7 +3,7 @@
 #include <rclc/executor.h>
 #include <std_msgs/msg/float32.h>
 
-#include "rcchecker.c"
+#include "../rcchecker.c"
 #include "volume_led_bar.c"
 
 #define VOLUME_SUBSCRIBER_TAG "VOLUME_SUBSCRIBER"

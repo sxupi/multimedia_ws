@@ -8,7 +8,7 @@
 #include "driver/adc.h"
 #include "esp_log.h"
 
-#include "rcchecker.c"
+#include "../rcchecker.c"
 #include "freq_reader.c"
 
 // Static variables

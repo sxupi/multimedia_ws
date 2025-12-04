@@ -64,4 +64,5 @@ void volume_subscriber_cleanup(void)
 {
     RCCHECK(rcl_subscription_fini(&volume_subscriber, &volume_sub_node));
     RCCHECK(rcl_node_fini(&volume_sub_node));
+    RCCHECK(std_msgs__msg__Float32__fini(&volume_sub_msg));
 }

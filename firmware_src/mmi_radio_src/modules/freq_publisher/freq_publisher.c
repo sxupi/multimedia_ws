@@ -98,5 +98,7 @@ void freq_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
 void freq_publisher_cleanup(void)
 {
     RCCHECK(rcl_publisher_fini(&freq_publisher, &freq_pub_node));
+    RCCHECK(rcl_timer_fini(&freq_pub_timer));
     RCCHECK(rcl_node_fini(&freq_pub_node));
+    RCCHECK(std_msgs__msg__Float32__fini(&freq_pub_msg));
 }

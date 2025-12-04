@@ -10,20 +10,20 @@
 // -------- Pin configuration --------
 
 // SECOND 74HC595 (for 7-seg)
-#define SEVSEG_SR_DATA   GPIO_NUM_16   // SER (DS)
-#define SEVSEG_SR_CLK    GPIO_NUM_17   // SRCLK (SHCP)
-#define SEVSEG_SR_LATCH  GPIO_NUM_22   // RCLK  (STCP)
+#define SEVSEG_SR_DATA GPIO_NUM_16  // SER (DS)
+#define SEVSEG_SR_CLK GPIO_NUM_17   // SRCLK (SHCP)
+#define SEVSEG_SR_LATCH GPIO_NUM_22 // RCLK  (STCP)
 
 // Digit select pins (common anodes)
-#define SEVSEG_DIGIT_0   GPIO_NUM_25   // leftmost
-#define SEVSEG_DIGIT_1   GPIO_NUM_26
-#define SEVSEG_DIGIT_2   GPIO_NUM_27
-#define SEVSEG_DIGIT_3   GPIO_NUM_32   // rightmost
+#define SEVSEG_DIGIT_0 GPIO_NUM_25 // leftmost
+#define SEVSEG_DIGIT_1 GPIO_NUM_26
+#define SEVSEG_DIGIT_2 GPIO_NUM_27
+#define SEVSEG_DIGIT_3 GPIO_NUM_32 // rightmost
 
 // Refresh timing: 4 digits * 3ms = ~12ms per cycle (~83Hz)
-#define SEVSEG_DIGIT_ON_TIME_MS   3
+#define SEVSEG_DIGIT_ON_TIME_MS 3
 #define SEVSEG_REFRESH_TASK_STACK 2048
-#define SEVSEG_REFRESH_TASK_PRIO  4
+#define SEVSEG_REFRESH_TASK_PRIO 4
 
 // ---------- Segment bit mapping on 74HC595 ----------
 // Assume Q0..Q7: A,B,C,D,E,F,G,DP
@@ -40,20 +40,20 @@
 // We'll define "active-high" patterns (1 = segment lit),
 // then invert before shifting (since ON = LOW on the IC output).
 static const uint8_t digit_patterns_active_high[10] = {
-    SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,                // 0
-    SEG_B | SEG_C,                                                // 1
-    SEG_A | SEG_B | SEG_D | SEG_E | SEG_G,                        // 2
-    SEG_A | SEG_B | SEG_C | SEG_D | SEG_G,                        // 3
-    SEG_B | SEG_C | SEG_F | SEG_G,                                // 4
-    SEG_A | SEG_C | SEG_D | SEG_F | SEG_G,                        // 5
-    SEG_A | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G,                // 6
-    SEG_A | SEG_B | SEG_C,                                        // 7
-    SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G,        // 8
-    SEG_A | SEG_B | SEG_C | SEG_D | SEG_F | SEG_G                 // 9
+    SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,         // 0
+    SEG_B | SEG_C,                                         // 1
+    SEG_A | SEG_B | SEG_D | SEG_E | SEG_G,                 // 2
+    SEG_A | SEG_B | SEG_C | SEG_D | SEG_G,                 // 3
+    SEG_B | SEG_C | SEG_F | SEG_G,                         // 4
+    SEG_A | SEG_C | SEG_D | SEG_F | SEG_G,                 // 5
+    SEG_A | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G,         // 6
+    SEG_A | SEG_B | SEG_C,                                 // 7
+    SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F | SEG_G, // 8
+    SEG_A | SEG_B | SEG_C | SEG_D | SEG_F | SEG_G          // 9
 };
 
 // Special value meaning "blank digit"
-#define DIGIT_BLANK  10
+#define DIGIT_BLANK 10
 
 // Four digits (0-9 or DIGIT_BLANK), index 0 = leftmost
 static volatile uint8_t s_digits[4] = {DIGIT_BLANK, DIGIT_BLANK, 0, 0};
@@ -100,16 +100,17 @@ static void digit_pins_init(void)
 // Shift out 8 bits MSB first to the 7-seg 74HC595
 static void shift_register_write(uint8_t value)
 {
-    gpio_set_level(SEVSEG_SR_LATCH, 0);  // latch low while shifting
+    gpio_set_level(SEVSEG_SR_LATCH, 0); // latch low while shifting
 
-    for (int i = 7; i >= 0; i--) {
+    for (int i = 7; i >= 0; i--)
+    {
         uint8_t bit = (value >> i) & 0x01;
         gpio_set_level(SEVSEG_SR_DATA, bit);
         gpio_set_level(SEVSEG_SR_CLK, 1);
         gpio_set_level(SEVSEG_SR_CLK, 0);
     }
 
-    gpio_set_level(SEVSEG_SR_LATCH, 1);  // latch high to output
+    gpio_set_level(SEVSEG_SR_LATCH, 1); // latch high to output
 }
 
 static void digits_all_off(void)
@@ -122,12 +123,22 @@ static void digits_all_off(void)
 
 static void digit_enable(unsigned int idx)
 {
-    switch (idx) {
-        case 0: gpio_set_level(SEVSEG_DIGIT_0, 1); break;
-        case 1: gpio_set_level(SEVSEG_DIGIT_1, 1); break;
-        case 2: gpio_set_level(SEVSEG_DIGIT_2, 1); break;
-        case 3: gpio_set_level(SEVSEG_DIGIT_3, 1); break;
-        default: break;
+    switch (idx)
+    {
+    case 0:
+        gpio_set_level(SEVSEG_DIGIT_0, 1);
+        break;
+    case 1:
+        gpio_set_level(SEVSEG_DIGIT_1, 1);
+        break;
+    case 2:
+        gpio_set_level(SEVSEG_DIGIT_2, 1);
+        break;
+    case 3:
+        gpio_set_level(SEVSEG_DIGIT_3, 1);
+        break;
+    default:
+        break;
     }
 }
 
@@ -137,8 +148,10 @@ static void sevenseg_refresh_task(void *arg)
     // Maybe I will remove it later on
     ESP_LOGI(TAG, "Refresh task started");
 
-    while (1) {
-        for (unsigned int i = 0; i < 4; i++) {
+    while (1)
+    {
+        for (unsigned int i = 0; i < 4; i++)
+        {
 
             // 1) Turn off all digits
             digits_all_off();
@@ -147,14 +160,18 @@ static void sevenseg_refresh_task(void *arg)
             uint8_t d = s_digits[i];
             uint8_t pattern_high;
 
-            if (d <= 9) {
+            if (d <= 9)
+            {
                 pattern_high = digit_patterns_active_high[d];
-            } else {
+            }
+            else
+            {
                 // blank digit
                 pattern_high = 0;
             }
 
-            if (s_dp[i]) {
+            if (s_dp[i])
+            {
                 pattern_high |= SEG_DP;
             }
 
@@ -186,8 +203,7 @@ void sevenseg_init(void)
         SEVSEG_REFRESH_TASK_STACK,
         NULL,
         SEVSEG_REFRESH_TASK_PRIO,
-        NULL
-    );
+        NULL);
 
     ESP_LOGI(TAG, "Seven-seg initialized");
 }
@@ -196,25 +212,29 @@ void sevenseg_init(void)
 void sevenseg_set_and_show_number(float number)
 {
     // Clamp and round to one decimal
-    if (number < 0.0f) {
+    if (number < 0.0f)
+    {
         number = 0.0f;
     }
-    if (number > 999.9f) {
+    if (number > 999.9f)
+    {
         number = 999.9f;
     }
 
     // Scale by 10 and round
-    int scaled = (int)(number * 10.0f + 0.5f);  // 0..9999
+    int scaled = (int)(number * 10.0f + 0.5f); // 0..9999
 
-    if (scaled < 0)       scaled = 0;
-    if (scaled > 9999)    scaled = 9999;
+    if (scaled < 0)
+        scaled = 0;
+    if (scaled > 9999)
+        scaled = 9999;
 
-    int decimal = scaled % 10;    // one decimal digit
-    int integer = scaled / 10;    // 0..999
+    int decimal = scaled % 10; // one decimal digit
+    int integer = scaled / 10; // 0..999
 
-    int hundreds = integer / 100;           // 0..9
-    int tens     = (integer / 10) % 10;     // 0..9
-    int ones     = integer % 10;           // 0..9
+    int hundreds = integer / 100;   // 0..9
+    int tens = (integer / 10) % 10; // 0..9
+    int ones = integer % 10;        // 0..9
 
     uint8_t d0, d1, d2, d3;
 
@@ -223,15 +243,20 @@ void sevenseg_set_and_show_number(float number)
     // - d2: ones digit (always shown)
     // - d1, d0: blank if leading zeros
 
-    if (integer >= 100) {
+    if (integer >= 100)
+    {
         // e.g. 123.4 -> [1][2][3].[4]
         d0 = (uint8_t)hundreds;
         d1 = (uint8_t)tens;
-    } else if (integer >= 10) {
+    }
+    else if (integer >= 10)
+    {
         // e.g. 12.3 -> [ ][1][2].[3]
         d0 = DIGIT_BLANK;
         d1 = (uint8_t)tens;
-    } else {
+    }
+    else
+    {
         // e.g. 0.7, 7.8 -> [ ][ ][7].[8]
         d0 = DIGIT_BLANK;
         d1 = DIGIT_BLANK;
@@ -249,5 +274,5 @@ void sevenseg_set_and_show_number(float number)
     s_dp[0] = false;
     s_dp[1] = false;
     s_dp[2] = false;
-    s_dp[3] = true;   // decimal point on last digit
+    s_dp[3] = true; // decimal point on last digit
 }

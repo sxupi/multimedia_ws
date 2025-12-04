@@ -68,8 +68,10 @@ void appMain(void)
     }
 
     ESP_LOGI(MAIN_TAG, "Starting cleanup");
+    RCCHECK(rclc_executor_fini(&executor));
     volume_publisher_cleanup();
     freq_publisher_cleanup();
     volume_subscriber_cleanup();
     freq_subscriber_cleanup();
+    RCCHECK(rclc_support_fini(&support));
 }

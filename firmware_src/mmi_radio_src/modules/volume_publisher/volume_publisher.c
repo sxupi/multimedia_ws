@@ -97,5 +97,7 @@ void volume_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
 void volume_publisher_cleanup(void)
 {
     RCCHECK(rcl_publisher_fini(&volume_publisher, &volume_pub_node));
+    RCCHECK(rcl_timer_fini(&volume_pub_timer));
     RCCHECK(rcl_node_fini(&volume_pub_node));
+    RCCHECK(std_msgs__msg__Float32__fini(&volume_pub_msg));
 }

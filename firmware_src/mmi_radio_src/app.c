@@ -18,6 +18,7 @@
 #include "modules/freq_publisher/freq_publisher.c"
 
 #include "modules/volume_subscriber/volume_subscriber.c"
+#include "modules/freq_subscriber/freq_subscriber.c"
 
 static const char *MAIN_TAG = "APP";
 
@@ -53,9 +54,13 @@ void appMain(void)
 
     // Maybe I need to delay it afterwards
     //vTaskDelay(pdMS_TO_TICKS(250));
-    ESP_LOGI(MAIN_TAG, "Initializing frequency publisher");
+    ESP_LOGI(MAIN_TAG, "Initializing volume subscriber");
     volume_subscriber_init(&support, &executor);
-    ESP_LOGI(MAIN_TAG, "Volume frequency initialized");
+    ESP_LOGI(MAIN_TAG, "Volume subscriber initialized");
+
+    ESP_LOGI(MAIN_TAG, "Initializing frequency subscriber");
+    freq_subscriber_init(&support, &executor);
+    ESP_LOGI(MAIN_TAG, "Frequency subscriber initialized");
 
     for (;;)
     {

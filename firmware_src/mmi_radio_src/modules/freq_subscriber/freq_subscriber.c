@@ -4,6 +4,7 @@
 #include <std_msgs/msg/float32.h>
 
 #include "rcchecker.c"
+#include "freq_sevseg.c"
 
 #define FREQ_SUBSCRIBER_TAG "FREQUENCY_SUBSCRIBER"
 #define FREQ_SUBSCRIBER_NODE_TAG "mmi_freq_subscriber"
@@ -25,7 +26,7 @@ void freq_subscription_callback(const void *msgin)
     if (frequency > 1000.0f)
         frequency = 999.0f;
 
-    // TODO: Add the function to set the frequency on the 7 segment LED display
+    sevenseg_set_and_show_number(frequency);
 }
 
 void freq_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
@@ -55,6 +56,6 @@ void freq_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
     ESP_LOGI(FREQ_SUBSCRIBER_TAG, "Subscriber was added to executor");
 
     ESP_LOGI(FREQ_SUBSCRIBER_TAG, "Initializing the 7 segment LED display")
-    // TODO: Add the init method for the 7 segment LED display
+    sevenseg_init();
     ESP_LOGI(FREQ_SUBSCRIBER_TAG, "7 segment LED display initialized")
 }

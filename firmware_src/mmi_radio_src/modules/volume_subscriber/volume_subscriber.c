@@ -54,4 +54,8 @@ void volume_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
                                            &volume_subscription_callback,
                                            ON_NEW_DATA));
     ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Subscriber was added to executor");
+
+    ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Initializing the LED bar")
+    led_bar_init();
+    ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "LED bar initialized")
 }

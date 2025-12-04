@@ -17,8 +17,7 @@
 
 #include "modules/freq_publisher/freq_publisher.c"
 
-#include "modules/volume_led_bar.c"
-#include "modules/volume_subscriber.c"
+#include "modules/volume_subscriber/volume_subscriber.c"
 
 static const char *MAIN_TAG = "APP";
 
@@ -35,7 +34,6 @@ void appMain(void)
 
     // Maybe I need to delay it afterwards
     //vTaskDelay(pdMS_TO_TICKS(250));
-
     rclc_executor_t executor;
     ESP_LOGI(MAIN_TAG, "Initializing executor");
     RCCHECK(rclc_executor_init(&executor, &support.context, 4, &allocator));
@@ -43,18 +41,21 @@ void appMain(void)
 
     // Maybe I need to delay it afterwards
     //vTaskDelay(pdMS_TO_TICKS(250));
-
     ESP_LOGI(MAIN_TAG, "Initializing volume publisher");
     volume_publisher_init(&support, &executor);
     ESP_LOGI(MAIN_TAG, "Volume publisher initialized");
 
     // Maybe I need to delay it afterwards
     //vTaskDelay(pdMS_TO_TICKS(250));
-
     ESP_LOGI(MAIN_TAG, "Initializing frequency publisher");
     freq_publisher_init(&support, &executor);
     ESP_LOGI(MAIN_TAG, "Volume frequency initialized");
 
+    // Maybe I need to delay it afterwards
+    //vTaskDelay(pdMS_TO_TICKS(250));
+    ESP_LOGI(MAIN_TAG, "Initializing frequency publisher");
+    volume_subscriber_init(&support, &executor);
+    ESP_LOGI(MAIN_TAG, "Volume frequency initialized");
 
     for (;;)
     {

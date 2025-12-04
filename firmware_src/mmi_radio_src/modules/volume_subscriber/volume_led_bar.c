@@ -2,7 +2,6 @@
 #include <stdint.h>
 
 #include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
 #include "esp_log.h"
 #include <math.h>
 
@@ -20,11 +19,6 @@ static const char *VOLUME_LED_BAR_TAG = "VOLUME_LED_BAR";
 // If you wired bar as common-cathode with anodes driven HIGH, keep 0.
 // If you wired it inverted (common-anode), set to 1.
 #define LED_BAR_INVERT_OUTPUT 0
-
-typedef struct
-{
-    QueueHandle_t queue;
-} volume_led_bar_task_config_t;
 
 static inline void sr_pulse(gpio_num_t pin)
 {
@@ -120,54 +114,4 @@ void led_bar_init(void)
     led_bar_set_level(5.0f);
 
     ESP_LOGI(VOLUME_LED_BAR_TAG, "LED bar initialized");
-}
-
-void volume_led_bar_task(void *pvParameters)
-{
-    volume_led_bar_task_config_t *cfg =
-        (volume_led_bar_task_config_t *)pvParameters;
-
-    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Volume publisher task started");
-    
-    float volume_level = 0.0f;
-    //bool direction = true;
-
-    for (;;)
-    {       
-        /*if (volume_level > 1.0f)
-            direction = false;
-        else if (volume_level < 0.0f)
-            direction = true;
-        
-        led_bar_set_level(volume_level);
-
-        if (direction)
-            volume_level =+ 0.1f;
-        else
-            volume_level =- 0.1f;
-
-        vTaskDelay(pdMS_TO_TICKS(250));*/
-
-        // Block until a new value arrives
-        if (xQueueReceive(cfg->queue, &volume_level, portMAX_DELAY) == pdTRUE)
-        {
-            led_bar_set_level(volume_level);
-            // TODO: Maybe publish the current value, so I have the current volume on other controllers as well
-        }
-    }
-}
-
-BaseType_t volume_led_bar_task_start(
-    const char *name,
-    uint16_t stack_size,
-    UBaseType_t priority,
-    volume_led_bar_task_config_t *config)
-{
-    return xTaskCreate(
-        volume_led_bar_task,
-        name,
-        stack_size,
-        (void *)config,
-        priority,
-        NULL);
 }

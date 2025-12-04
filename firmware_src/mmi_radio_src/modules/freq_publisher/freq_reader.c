@@ -38,7 +38,7 @@ uint16_t read_freq_potentiometer_raw(void)
 {
     // For ADC1, use adc1_get_raw
     int raw = adc1_get_raw(FREQ_READER_ADC_CHANNEL);
-    
+
     if (raw < FREQ_MIN_RAW_VALUE)
         raw = FREQ_MIN_RAW_VALUE;
     if (raw > FREQ_MAX_RAW_VALUE)

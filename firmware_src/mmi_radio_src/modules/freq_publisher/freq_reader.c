@@ -13,8 +13,8 @@
 #define FREQ_READER_ADC_ATTEN ADC_ATTEN_DB_11  // ~0–3.3V range
 
 // Other static variables
-#define FREQ_MIN_RAW_VALUE 0
-#define FREQ_MAX_RAW_VALUE 4095
+#define FREQ_MIN_RAW_VALUE 200.0f
+#define FREQ_MAX_RAW_VALUE 3700.0f
 
 void freq_reader_init(void)
 {

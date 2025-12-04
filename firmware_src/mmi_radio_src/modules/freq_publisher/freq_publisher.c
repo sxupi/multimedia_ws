@@ -15,9 +15,9 @@
 // Static variables
 #define FREQ_PUBLISHER_TAG "FREQUENCY_PUBLISHER"
 #define FREQ_PUBLISHER_NODE_TAG "mmi_frequency_publisher"
-#define FREQ_PUBLISHER_TOPIC "frequency_float32"
+#define FREQ_PUBLISHER_TOPIC "potentiometer/frequency_float32"
 
-#define FREQ_PUBLISHER_CHANGE_THRESHOLD 100
+#define FREQ_PUBLISHER_CHANGE_THRESHOLD 25
 #define FREQ_PUBLISHER_TIMER_DELAY_MS 50
 
 // Global micro-ROS variables
@@ -41,9 +41,9 @@ void freq_publisher_timer_callback(rcl_timer_t *timer, int64_t last_call_time)
                             ? (current - freq_last_raw_value)
                             : (freq_last_raw_value - current);
 
-        if (diff > FREQ_PUBLISHER_CHANGE_THRESHOLD)
+        if (diff >= FREQ_PUBLISHER_CHANGE_THRESHOLD)
         {
-            float normalized = (float)current / FREQ_MAX_RAW_VALUE;
+            float normalized = (current - FREQ_MIN_RAW_VALUE) / (FREQ_MAX_RAW_VALUE - FREQ_MIN_RAW_VALUE);
             freq_pub_msg.data = normalized;
 
             RCSOFTCHECK(rcl_publish(&freq_publisher, &freq_pub_msg, NULL));

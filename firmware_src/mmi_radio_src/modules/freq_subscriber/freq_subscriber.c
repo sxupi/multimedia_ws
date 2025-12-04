@@ -8,7 +8,7 @@
 
 #define FREQ_SUBSCRIBER_TAG "FREQUENCY_SUBSCRIBER"
 #define FREQ_SUBSCRIBER_NODE_TAG "mmi_freq_subscriber"
-#define FREQ_SUBSCRIBER_TOPIC "frequency_float32"
+#define FREQ_SUBSCRIBER_TOPIC "controller/frequency_float32"
 
 // Global micro-ROS variables
 rcl_node_t freq_sub_node;
@@ -40,7 +40,7 @@ void freq_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
     ESP_LOGI(FREQ_SUBSCRIBER_TAG, "Node (%s) initialized", FREQ_SUBSCRIBER_NODE_TAG);
 
     ESP_LOGI(FREQ_SUBSCRIBER_TAG, "Initializing subscription");
-    RCCHECK(rclc_subscription_init_best_effort(
+    RCCHECK(rclc_subscription_init_default(
         &freq_subscriber,
         &freq_sub_node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),

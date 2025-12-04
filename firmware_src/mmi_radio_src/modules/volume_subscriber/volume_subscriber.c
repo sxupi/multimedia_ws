@@ -8,10 +8,11 @@
 
 #define VOLUME_SUBSCRIBER_TAG "VOLUME_SUBSCRIBER"
 #define VOLUME_SUBSCRIBER_NODE_TAG "mmi_volume_subscriber"
-#define VOLUME_SUBSCRIBER_TOPIC "volume_float32"
+#define VOLUME_SUBSCRIBER_TOPIC "controller/volume_float32"
 
 // Global micro-ROS variables
 rcl_node_t volume_sub_node;
+
 rcl_subscription_t volume_subscriber;
 std_msgs__msg__Float32 volume_sub_msg;
 
@@ -40,7 +41,7 @@ void volume_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
     ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Node (%s) initialized", VOLUME_SUBSCRIBER_NODE_TAG);
 
     ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "Initializing subscription");
-    RCCHECK(rclc_subscription_init_best_effort(
+    RCCHECK(rclc_subscription_init_default(
         &volume_subscriber,
         &volume_sub_node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),

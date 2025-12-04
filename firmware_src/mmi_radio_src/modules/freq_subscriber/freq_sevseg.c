@@ -273,6 +273,6 @@ void sevenseg_set_and_show_number(float number)
 
     s_dp[0] = false;
     s_dp[1] = false;
-    s_dp[2] = false;
-    s_dp[3] = true; // decimal point on last digit
+    s_dp[2] = true;
+    s_dp[3] = false;
 }

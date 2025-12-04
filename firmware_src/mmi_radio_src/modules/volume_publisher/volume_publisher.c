@@ -14,7 +14,7 @@
 // Static variables
 #define VOLUME_PUBLISHER_TAG "VOLUME_PUBLISHER"
 #define VOLUME_PUBLISHER_NODE_TAG "mmi_volume_publisher"
-#define VOLUME_PUBLISHER_TOPIC "volume_float32"
+#define VOLUME_PUBLISHER_TOPIC "potentiometer/volume_float32"
 
 #define VOLUME_PUBLISHER_CHANGE_THRESHOLD 50
 #define VOLUME_PUBLISHER_TIMER_DELAY_MS 50
@@ -42,7 +42,7 @@ void volume_publisher_timer_callback(rcl_timer_t *timer, int64_t last_call_time)
 
         if (diff >= VOLUME_PUBLISHER_CHANGE_THRESHOLD)
         {
-            float normalized = (float)current / VOLUME_MAX_RAW_VALUE;
+            float normalized = (current - VOLUME_MIN_RAW_VALUE) / (VOLUME_MAX_RAW_VALUE - VOLUME_MIN_RAW_VALUE);
             volume_pub_msg.data = normalized;
 
             RCSOFTCHECK(rcl_publish(&volume_publisher, &volume_pub_msg, NULL));

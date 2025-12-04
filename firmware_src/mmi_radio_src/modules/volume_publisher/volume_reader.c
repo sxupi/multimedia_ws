@@ -14,7 +14,7 @@
 #define VOLUME_READER_ADC_ATTEN ADC_ATTEN_DB_11  // ~0–3.3V range
 
 // Other static variables
-#define VOLUME_MIN_RAW_VALUE 0.0f
+#define VOLUME_MIN_RAW_VALUE 100.0f
 #define VOLUME_MAX_RAW_VALUE 3600.0f
 
 void volume_reader_init(void)

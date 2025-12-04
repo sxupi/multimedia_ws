@@ -93,3 +93,9 @@ void volume_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
     // Do one read for initializing the reader
     volume_last_raw_value = read_volume_potentiometer_raw();
 }
+
+void volume_publisher_cleanup(void)
+{
+    RCCHECK(rcl_publisher_fini(&volume_publisher, &volume_pub_node));
+    RCCHECK(rcl_node_fini(&volume_pub_node));
+}

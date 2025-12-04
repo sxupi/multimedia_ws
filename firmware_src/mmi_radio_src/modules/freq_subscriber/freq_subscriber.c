@@ -59,3 +59,9 @@ void freq_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
     sevenseg_init();
     ESP_LOGI(FREQ_SUBSCRIBER_TAG, "7 segment LED display initialized")
 }
+
+void freq_subscriber_cleanup(void)
+{
+    RCCHECK(rcl_subscription_fini(&freq_subscriber, &freq_sub_node));
+    RCCHECK(rcl_node_fini(&freq_sub_node));
+}

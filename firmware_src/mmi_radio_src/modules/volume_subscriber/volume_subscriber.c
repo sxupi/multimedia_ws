@@ -59,3 +59,9 @@ void volume_subscriber_init(rclc_support_t *support, rclc_executor_t *executor)
     led_bar_init();
     ESP_LOGI(VOLUME_SUBSCRIBER_TAG, "LED bar initialized")
 }
+
+void volume_subscriber_cleanup(void)
+{
+    RCCHECK(rcl_subscription_fini(&volume_subscriber, &volume_sub_node));
+    RCCHECK(rcl_node_fini(&volume_sub_node));
+}

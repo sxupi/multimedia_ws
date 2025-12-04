@@ -14,12 +14,13 @@
 // Static variables
 #define FREQ_PUBLISHER_TAG "FREQUENCY_PUBLISHER"
 #define FREQ_PUBLISHER_NODE_TAG "mmi_frequency_publisher"
+#define FREQ_PUBLISHER_TOPIC "frequency_float32
 
 #define FREQ_PUBLISHER_CHANGE_THRESHOLD 100
 #define FREQ_PUBLISHER_TIMER_DELAY_MS 50
 
 // Global micro-ROS variables
-rcl_node_t  freq_pub_node;
+rcl_node_t freq_pub_node;
 rcl_timer_t freq_pub_timer;
 rcl_publisher_t freq_publisher;
 std_msgs__msg__Float32 freq_pub_msg;
@@ -27,11 +28,11 @@ std_msgs__msg__Float32 freq_pub_msg;
 // Global variables
 uint16_t freq_last_raw_value;
 
-void freq_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+void freq_publisher_timer_callback(rcl_timer_t *timer, int64_t last_call_time)
 {
     RCLC_UNUSED(last_call_time);
 
-	if (timer != NULL)
+    if (timer != NULL)
     {
         uint16_t current = read_freq_potentiometer_raw();
 
@@ -65,9 +66,17 @@ void freq_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
         "",
         support));
     ESP_LOGI(FREQ_PUBLISHER_TAG, "Node (%s) initialized", FREQ_PUBLISHER_NODE_TAG);
-    
+
+    ESP_LOGI(FREQ_PUBLISHER_TAG, "Initializing publisher");
+    RCCHECK(rclc_publisher_init_default(
+        &freq_publisher,
+        &freq_pub_node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        FREQ_PUBLISHER_TOPIC));
+    ESP_LOGI(FREQ_PUBLISHER_TAG, "Publisher initialized");
+
     ESP_LOGI(FREQ_PUBLISHER_TAG, "Initializing timer with %d ms poll rate", FREQ_PUBLISHER_TIMER_DELAY_MS);
-	RCCHECK(rclc_timer_init_default(
+    RCCHECK(rclc_timer_init_default(
         &freq_pub_timer,
         support,
         RCL_MS_TO_NS(FREQ_PUBLISHER_TIMER_DELAY_MS),

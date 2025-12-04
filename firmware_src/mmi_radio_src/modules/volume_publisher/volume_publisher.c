@@ -13,24 +13,25 @@
 // Static variables
 #define VOLUME_PUBLISHER_TAG "VOLUME_PUBLISHER"
 #define VOLUME_PUBLISHER_NODE_TAG "mmi_volume_publisher"
+#define VOLUME_PUBLISHER_TOPIC "volume_float32"
 
 #define VOLUME_PUBLISHER_CHANGE_THRESHOLD 100
 #define VOLUME_PUBLISHER_TIMER_DELAY_MS 50
 
 // Global micro-ROS variables
-rcl_node_t  volume_pub_node;
-rcl_timer_t volume_pub_timer;
+rcl_node_t volume_pub_node;
 rcl_publisher_t volume_publisher;
+rcl_timer_t volume_pub_timer;
 std_msgs__msg__Float32 volume_pub_msg;
 
 // Global variables
 uint16_t volume_last_raw_value;
 
-void volume_publisher_timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+void volume_publisher_timer_callback(rcl_timer_t *timer, int64_t last_call_time)
 {
     RCLC_UNUSED(last_call_time);
 
-	if (timer != NULL)
+    if (timer != NULL)
     {
         uint16_t current = read_volume_potentiometer_raw();
 
@@ -64,9 +65,17 @@ void volume_publisher_init(rcl_allocator_t *support, rclc_executor_t *executor)
         "",
         support));
     ESP_LOGI(VOLUME_PUBLISHER_TAG, "Node (%s) initialized", VOLUME_PUBLISHER_NODE_TAG);
-    
+
+    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Initializing publisher");
+    RCCHECK(rclc_publisher_init_default(
+        &volume_publisher,
+        &volume_pub_node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        VOLUME_PUBLISHER_TOPIC));
+    ESP_LOGI(VOLUME_PUBLISHER_TAG, "Publisher initialized");
+
     ESP_LOGI(VOLUME_PUBLISHER_TAG, "Initializing timer with %d ms poll rate", VOLUME_PUBLISHER_TIMER_DELAY_MS);
-	RCCHECK(rclc_timer_init_default(
+    RCCHECK(rclc_timer_init_default(
         &volume_pub_timer,
         support,
         RCL_MS_TO_NS(VOLUME_PUBLISHER_TIMER_DELAY_MS),

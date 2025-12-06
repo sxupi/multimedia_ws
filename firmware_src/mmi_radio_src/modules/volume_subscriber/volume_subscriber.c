@@ -8,7 +8,7 @@
 
 #define VOLUME_SUBSCRIBER_TAG "VOLUME_SUBSCRIBER"
 #define VOLUME_SUBSCRIBER_NODE_TAG "mmi_volume_subscriber"
-#define VOLUME_SUBSCRIBER_TOPIC "controller/volume_float32"
+#define VOLUME_SUBSCRIBER_TOPIC "current/volume_float32"
 
 // Global micro-ROS variables
 rcl_node_t volume_sub_node;

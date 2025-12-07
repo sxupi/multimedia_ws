@@ -208,71 +208,52 @@ void sevenseg_init(void)
     ESP_LOGI(TAG, "Seven-seg initialized");
 }
 
-// Helper: convert float [0.0, 999.9] → digits + decimal
-void sevenseg_set_and_show_number(float number)
+void sevenseg_set_and_show_number_int(int number)
 {
-    // Clamp and round to one decimal
-    if (number < 0.0f)
+    // Clamp range: 0..9999
+    if (number < 0)
+        number = 0;
+    if (number > 9999)
+        number = 9999;
+
+    // Extract digits
+    int d4 = number % 10;
+    int d3 = (number / 10) % 10;
+    int d2 = (number / 100) % 10;
+    int d1 = (number / 1000) % 10;
+
+    uint8_t digit0, digit1, digit2, digit3;
+
+    if (number < 1000)
     {
-        number = 0.0f;
-    }
-    if (number > 999.9f)
-    {
-        number = 999.9f;
-    }
-
-    // Scale by 10 and round
-    int scaled = (int)(number * 10.0f + 0.5f); // 0..9999
-
-    if (scaled < 0)
-        scaled = 0;
-    if (scaled > 9999)
-        scaled = 9999;
-
-    int decimal = scaled % 10; // one decimal digit
-    int integer = scaled / 10; // 0..999
-
-    int hundreds = integer / 100;   // 0..9
-    int tens = (integer / 10) % 10; // 0..9
-    int ones = integer % 10;        // 0..9
-
-    uint8_t d0, d1, d2, d3;
-
-    // Layout: [d0][d1][d2].[d3]
-    // - d3: decimal digit (always shown)
-    // - d2: ones digit (always shown)
-    // - d1, d0: blank if leading zeros
-
-    if (integer >= 100)
-    {
-        // e.g. 123.4 -> [1][2][3].[4]
-        d0 = (uint8_t)hundreds;
-        d1 = (uint8_t)tens;
-    }
-    else if (integer >= 10)
-    {
-        // e.g. 12.3 -> [ ][1][2].[3]
-        d0 = DIGIT_BLANK;
-        d1 = (uint8_t)tens;
+        //
+        // Format: [blank][d2][d3].[d4]
+        //
+        digit0 = DIGIT_BLANK; // always blank
+        digit1 = (uint8_t)d2; // hundreds (or blank if <100)
+        digit2 = (uint8_t)d3; // tens (or blank if <10)
+        digit3 = (uint8_t)d4; // ones
     }
     else
     {
-        // e.g. 0.7, 7.8 -> [ ][ ][7].[8]
-        d0 = DIGIT_BLANK;
-        d1 = DIGIT_BLANK;
+        //
+        // Format: [d1][d2][d3].[d4]
+        //
+        digit0 = (uint8_t)d1; // thousands
+        digit1 = (uint8_t)d2; // hundreds
+        digit2 = (uint8_t)d3; // tens
+        digit3 = (uint8_t)d4; // ones
     }
 
-    d2 = (uint8_t)ones;
-    d3 = (uint8_t)decimal;
+    // Apply to global buffers
+    s_digits[0] = digit0;
+    s_digits[1] = digit1;
+    s_digits[2] = digit2;
+    s_digits[3] = digit3;
 
-    // Update globals (atomic enough for this use case)
-    s_digits[0] = d0;
-    s_digits[1] = d1;
-    s_digits[2] = d2;
-    s_digits[3] = d3;
-
+    // DP always ON on digit index 2
     s_dp[0] = false;
     s_dp[1] = false;
-    s_dp[2] = true;
+    s_dp[2] = true; // DP ON here
     s_dp[3] = false;
 }

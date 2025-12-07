@@ -10,7 +10,7 @@
 
 #define FREQ_SUBSCRIBER_TAG "FREQUENCY_SUBSCRIBER"
 #define FREQ_SUBSCRIBER_NODE_TAG "mmi_freq_subscriber"
-#define FREQ_SUBSCRIBER_TOPIC "current/frequency_int"
+#define FREQ_SUBSCRIBER_TOPIC "current/frequency_int32"
 
 // Global micro-ROS variables
 rcl_node_t freq_sub_node;

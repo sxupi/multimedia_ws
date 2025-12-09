@@ -1,8 +1,8 @@
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 
-from volume_controller_node import VolumeControllerNode
-from freq_controller_node import FrequencyControllerNode
+from .volume_controller_node import VolumeControllerNode
+from .freq_controller_node import FrequencyControllerNode
 
 def main(args=None):
     rclpy.init(args=args)

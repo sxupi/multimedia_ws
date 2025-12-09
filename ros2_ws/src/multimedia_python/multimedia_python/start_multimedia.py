@@ -3,16 +3,19 @@ from rclpy.executors import MultiThreadedExecutor
 
 from .volume_controller_node import VolumeControllerNode
 from .freq_controller_node import FrequencyControllerNode
+from .ir_receiver_node import IRReceiverNode
 
 def main(args=None):
     rclpy.init(args=args)
 
     volume_controller_node = VolumeControllerNode()
     frequency_controller_node = FrequencyControllerNode()
+    ir_receiver_node = IRReceiverNode()
 
     executor = MultiThreadedExecutor()
     executor.add_node(volume_controller_node)
     executor.add_node(frequency_controller_node)
+    executor.add_node(ir_receiver_node)
 
     try:
         executor.spin()

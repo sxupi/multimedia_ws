@@ -53,7 +53,7 @@ class FrequencyControllerNode(Node):
         self.get_logger().info('Publishing frequency: %f' % msg.data)
 
     def __map_frequency(self, norm_freq: float) -> int:
-        return self.MIN_FREQUENCY + norm_freq * (self.MAX_FREQUENCY - self.MIN_FREQUENCY)
+        return int(self.MIN_FREQUENCY + norm_freq * (self.MAX_FREQUENCY - self.MIN_FREQUENCY))
 
     def get_frequency(self) -> float:
         return self.__current_frequency

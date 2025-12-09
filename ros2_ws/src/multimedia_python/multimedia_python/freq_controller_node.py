@@ -16,26 +16,26 @@ class FrequencyControllerNode(Node):
             self.__frequency_command_callback,
             10
         )
-        self.subscriber_ = self.create_subscription(
+        self.frequency_subscriber_ = self.create_subscription(
             Float32,
             'potentiometer/frequency_float32',
             self.__frequency_received_callback,
             10
         )
-        self.publisher_ = self.create_publisher(
+        self.frequency_publisher_ = self.create_publisher(
             Int32,
             '/current/frequency_int32',
             10
         )
         self.__current_frequency = 875
-    
+
     def __frequency_command_callback(self, msg: String) -> None:
         match msg.data:
-            case 'LOWER_FREQ':
-                self.__lower_frequency()
-                return
-            case 'HIGHER_FREQ':
+            case 'NEXT':
                 self.__higher_frequency()
+                return
+            case 'PREV':
+                self.__lower_frequency()
                 return
             case _:
                 return
@@ -49,7 +49,7 @@ class FrequencyControllerNode(Node):
     def __publish_frequency(self) -> None:
         msg = Int32()
         msg.data = self.__current_frequency
-        self.publisher_.publish(msg)
+        self.frequency_publisher_.publish(msg)
         self.get_logger().info('Publishing frequency: %d' % msg.data)
 
     def __map_frequency(self, norm_freq: float) -> int:
@@ -58,10 +58,10 @@ class FrequencyControllerNode(Node):
     def get_frequency(self) -> float:
         return self.__current_frequency
 
-    def __lower_frequency(self) -> None:
-        self.__current_frequency -= self.COMMAND_FREQ_CHANGE
-        self.__publish_frequency()
-
     def __higher_frequency(self) -> None:
         self.__current_frequency += self.COMMAND_FREQ_CHANGE
+        self.__publish_frequency()
+
+    def __lower_frequency(self) -> None:
+        self.__current_frequency -= self.COMMAND_FREQ_CHANGE
         self.__publish_frequency()

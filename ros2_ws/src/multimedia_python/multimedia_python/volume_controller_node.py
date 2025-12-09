@@ -20,7 +20,7 @@ class VolumeControllerNode(Node):
             self.__volume_received_callback,
             10
         )
-        self.publisher_ = self.create_publisher(
+        self.volume_publisher_ = self.create_publisher(
             Float32,
             '/current/volume_float32',
             10
@@ -29,11 +29,11 @@ class VolumeControllerNode(Node):
 
     def __volume_command_callback(self, msg: String) -> None:
         match msg.data:
-            case 'LOWER_VOLUME':
-                self.__lower_volume()
-                return
             case 'HIGHER_VOLUME':
                 self.__higher_volume()
+                return
+            case 'LOWER_VOLUME':
+                self.__lower_volume()
                 return
             case _:
                 return
@@ -47,16 +47,16 @@ class VolumeControllerNode(Node):
     def __publish_volume(self) -> None:
         msg = Float32()
         msg.data = self.__current_volume
-        self.publisher_.publish(msg)
+        self.volume_publisher_.publish(msg)
         self.get_logger().info('Publishing current volume: %f' % msg.data)
 
     def get_volume(self) -> float:
         return self.__current_volume
 
-    def __lower_volume(self) -> None:
-        self.__current_volume -= self.COMMAND_VOLUME_CHANGE
-        self.__publish_volume()
-
     def __higher_volume(self) -> None:
         self.__current_volume += self.COMMAND_VOLUME_CHANGE
+        self.__publish_volume()
+
+    def __lower_volume(self) -> None:
+        self.__current_volume -= self.COMMAND_VOLUME_CHANGE
         self.__publish_volume()

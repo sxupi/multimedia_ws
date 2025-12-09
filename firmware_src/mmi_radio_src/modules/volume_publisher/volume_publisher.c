@@ -16,7 +16,7 @@
 #define VOLUME_PUBLISHER_NODE_TAG "mmi_volume_publisher"
 #define VOLUME_PUBLISHER_TOPIC "potentiometer/volume_float32"
 
-#define VOLUME_PUBLISHER_CHANGE_THRESHOLD 50
+#define VOLUME_PUBLISHER_CHANGE_THRESHOLD 100
 #define VOLUME_PUBLISHER_TIMER_DELAY_MS 50
 
 // Global micro-ROS variables

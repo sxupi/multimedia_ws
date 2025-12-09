@@ -17,7 +17,7 @@
 #define FREQ_PUBLISHER_NODE_TAG "mmi_frequency_publisher"
 #define FREQ_PUBLISHER_TOPIC "potentiometer/frequency_float32"
 
-#define FREQ_PUBLISHER_CHANGE_THRESHOLD 25
+#define FREQ_PUBLISHER_CHANGE_THRESHOLD 100
 #define FREQ_PUBLISHER_TIMER_DELAY_MS 50
 
 // Global micro-ROS variables

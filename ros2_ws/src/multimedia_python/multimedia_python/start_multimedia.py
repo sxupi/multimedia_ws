@@ -1,0 +1,27 @@
+import rclpy
+from rclpy.executors import MultiThreadedExecutor
+
+from volume_controller_node import VolumeControllerNode
+from freq_controller_node import FrequencyControllerNode
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    volume_controller_node = VolumeControllerNode()
+    frequency_controller_node = FrequencyControllerNode()
+
+    executor = MultiThreadedExecutor()
+    executor.add_node(volume_controller_node)
+    executor.add_node(frequency_controller_node)
+
+    try:
+        executor.spin()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        volume_controller_node.destroy_node()
+        frequency_controller_node.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

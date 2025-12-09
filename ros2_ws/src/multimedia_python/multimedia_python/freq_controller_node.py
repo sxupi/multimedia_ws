@@ -9,7 +9,7 @@ class FrequencyControllerNode(Node):
     MAX_FREQUENCY: int = 1090
 
     def __init__(self):
-        super.__init__('volume_controller')
+        super().__init__('frequency_controller')
         self.command_subscriber_ = self.create_subscription(
             String,
             '/ir_receiver/command',

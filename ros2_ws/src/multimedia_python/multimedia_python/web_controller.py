@@ -48,7 +48,7 @@ async def send_command(request: CommandRequest):
                 status_code=400,
                 detail="SET_VOLUME requires a 'value' field."
             )
-        if not (0.0 <= request.value <= 1.0):
+        if not (0 <= request.value <= 100):
             raise HTTPException(
                 status_code=400,
                 detail="Volume must be between 0.0 and 1.0."
@@ -58,7 +58,7 @@ async def send_command(request: CommandRequest):
     if ros_node is not None and isinstance(ros_node, CommandApiNode):
         if request.command == Command.SET_VOLUME:
             msg = Float32()
-            msg.data = request.value
+            msg.data = request.value / 100
             ros_node.volume_publisher_.publish(msg.data)
         else:
             msg = String()

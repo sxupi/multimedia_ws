@@ -27,7 +27,7 @@ setup(
             'volume_controller_node = multimedia_python.volume_controller_node:main',
             'frequency_controller_node = multimedia_python.freq_controller_node:main',
             'ir_receiver_node = multimedia_python.ir_receiver_node:main',
-            'lcd_display_node = multimedia_python.lcd_display_node:main',
+            'display_node = multimedia_python.display_node:main',
         ],
     },
 )

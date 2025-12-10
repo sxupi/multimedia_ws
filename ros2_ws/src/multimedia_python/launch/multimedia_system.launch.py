@@ -24,10 +24,9 @@ def generate_launch_description():
             executable='ir_receiver_node',
             name='ir_receiver_node'
         ),
-        # Obsolete, due to i2c issues
-        #Node(
-        #    package='multimedia_python',
-        #    executable='lcd_display_node',
-        #    name='lcd_display_node'
-        #),
+        Node(
+            package='multimedia_python',
+            executable='display_node',
+            name='display_node'
+        ),
     ])

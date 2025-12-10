@@ -37,12 +37,12 @@ class RadioNode(Node):
         )
         self.first_line_publisher_ = self.create_publisher(
             String,
-            '/lcd_display/first_string',
+            '/display/header_string',
             10
         )
         self.second_line_publisher_ = self.create_publisher(
             String,
-            '/lcd_display/second_string',
+            '/display/text_string',
             10
         )
 

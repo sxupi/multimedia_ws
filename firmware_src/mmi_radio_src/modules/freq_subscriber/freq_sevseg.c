@@ -12,7 +12,7 @@
 // SECOND 74HC595 (for 7-seg)
 #define SEVSEG_SR_DATA GPIO_NUM_16  // SER (DS)
 #define SEVSEG_SR_CLK GPIO_NUM_17   // SRCLK (SHCP)
-#define SEVSEG_SR_LATCH GPIO_NUM_22 // RCLK  (STCP)
+#define SEVSEG_SR_LATCH GPIO_NUM_4 // RCLK  (STCP)
 
 // Digit select pins (common anodes)
 #define SEVSEG_DIGIT_0 GPIO_NUM_25 // leftmost

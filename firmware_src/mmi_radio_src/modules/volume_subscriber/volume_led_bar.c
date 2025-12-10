@@ -13,8 +13,8 @@ static const char *VOLUME_LED_BAR_TAG = "VOLUME_LED_BAR";
 #define SR_LATCH_GPIO GPIO_NUM_5 // RCLK  (pin 12)
 
 // Last 2 LEDs directly on ESP32
-#define LED8_GPIO GPIO_NUM_19 // segment index 8 (9th LED)
-#define LED9_GPIO GPIO_NUM_21 // segment index 9 (10th LED)
+#define LED8_GPIO GPIO_NUM_33 // segment index 8 (9th LED)
+#define LED9_GPIO GPIO_NUM_19 // segment index 9 (10th LED)
 
 // If you wired bar as common-cathode with anodes driven HIGH, keep 0.
 // If you wired it inverted (common-anode), set to 1.

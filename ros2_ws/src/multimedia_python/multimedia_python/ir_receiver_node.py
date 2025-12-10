@@ -17,7 +17,7 @@ class IRReceiverNode(Node):
         0x300ffe01f: 'PREV',
     }
 
-    def __init__(self, pin: int = 16) -> None:
+    def __init__(self, pin: int = 23) -> None:
         super().__init__('ir_receiver')
 
         self._pin = pin

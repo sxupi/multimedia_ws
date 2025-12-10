@@ -77,7 +77,7 @@ def main(args=None):
 
     print('Starting to spin the volume controller node now')
     try:
-        node.spin()
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:

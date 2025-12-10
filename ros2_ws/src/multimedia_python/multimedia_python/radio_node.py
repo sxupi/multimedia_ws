@@ -57,7 +57,7 @@ def main(args=None):
 
     print('Starting to spin the radio node now')
     try:
-        node.spin()
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:

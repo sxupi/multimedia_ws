@@ -12,7 +12,7 @@ class FrequencyControllerNode(Node):
         super().__init__('frequency_controller')
         self.command_subscriber_ = self.create_subscription(
             String,
-            '/ir_receiver/command',
+            '/ir_receiver/command_string',
             self.__frequency_command_callback,
             10
         )

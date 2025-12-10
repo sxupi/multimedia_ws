@@ -219,7 +219,25 @@ class si4703Radio():
     def si4703ClearRDSBuffers(self):
         self.si4703_rds_ps[:] = []
         self.si4703_rds_rt[:] = []
-        
+    
+    def si4703GetProgramService(self) -> str:
+        """
+        Return the RDS Program Service (PS) name as a string.
+        Typically 8 characters, e.g. 'OE3    '.
+        """
+        # Filter out empty / uninitialized entries and NUL chars
+        chars = [c for c in self.si4703_rds_ps if c and c != '\x00']
+        return ''.join(chars).strip()
+
+    def si4703GetRadioText(self) -> str:
+        """
+        Return the RDS Radio Text (RT) as a string.
+        Up to 64 characters.
+        """
+        chars = [c for c in self.si4703_rds_rt if c and c != '\x00']
+        return ''.join(chars).strip()
+
+
     def si4703Init(self):
         # To get the Si4703 inito 2-wire mode, SEN needs to be high and SDIO needs to be low after a reset
         # The breakout board has SEN pulled high, but also has SDIO pulled high. Therefore, after a normal power up

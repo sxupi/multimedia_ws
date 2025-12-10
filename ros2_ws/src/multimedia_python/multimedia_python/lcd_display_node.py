@@ -20,7 +20,7 @@ class LCDDisplayNode(Node):
             10
         )
 
-        self._lcd = LCD()
+        self._lcd = LCD(i2c_addr=39)
 
         self._first_line = 'Hello,'
         self._second_line = 'multimedia station started'

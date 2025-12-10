@@ -8,6 +8,7 @@ from .external.si4703Library import si4703Radio
 class RadioNode(Node):
 
     def __init__(self):
+        super().__init__('radio')
         self.frequency_subscriber_ = self.create_subscription(
             Int32,
             '/current/frequency_int32',

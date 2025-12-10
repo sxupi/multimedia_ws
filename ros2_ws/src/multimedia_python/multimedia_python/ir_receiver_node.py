@@ -24,7 +24,7 @@ class IRReceiverNode(Node):
         super().__init__('ir_receiver')
         self.__command_publisher_ = self.create_publisher(
             String,
-            '/ir_receiver/command_string',
+            '/remote/command_string',
             10
         )
         self.__ir_module = IRModule.IRRemote(self.__ir_received)

@@ -12,7 +12,7 @@ class VolumeControllerNode(Node):
         super().__init__('volume_controller')
         self.command_subscriber_ = self.create_subscription(
             String,
-            '/ir_receiver/command_string',
+            '/remote/command_string',
             self.__volume_command_callback,
             10
         )

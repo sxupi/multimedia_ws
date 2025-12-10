@@ -18,7 +18,7 @@ class IRReceiverNode(Node):
         16769055: 'PREV'  # 0x300ffe01f: 'PREV'
     }
 
-    DEBOUNCE_THRESHOLD = 0.1
+    DEBOUNCE_THRESHOLD = 0.25
 
     def __init__(self, bcm_num=23):
         super().__init__('ir_receiver')

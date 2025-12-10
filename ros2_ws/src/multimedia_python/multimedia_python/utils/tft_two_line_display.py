@@ -5,7 +5,7 @@ from typing import Optional
 from luma.core.interface.serial import spi
 from luma.core.render import canvas
 from luma.lcd.device import st7735
-from PIL import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 
 class TwoLineDisplay:
@@ -94,8 +94,18 @@ class TwoLineDisplay:
     def _measure_width(self, text: str) -> int:
         if not text:
             return 0
-        w, _ = self.font.getsize(text)
-        return w
+
+        # Newer Pillow (>=10) prefers getlength / getbbox, getsize is removed
+        try:
+            # Pillow 8+ has getlength for text width
+            width = self.font.getlength(text)
+            return int(width)
+        except AttributeError:
+            # Fallback path: use a temporary ImageDraw to measure
+            img = Image.new("RGB", (1, 1))
+            draw = ImageDraw.Draw(img)
+            w, _ = draw.textsize(text, font=self.font)
+            return int(w)
 
     def _should_scroll(self, width_px: int, line_width_px: int) -> bool:
         return width_px > line_width_px
@@ -125,7 +135,8 @@ class TwoLineDisplay:
 
         with canvas(self.device) as draw:
             # Background
-            draw.rectangle((0, 0, width, height), outline="white", fill="black")
+            draw.rectangle((0, 0, width, height),
+                           outline="white", fill="black")
 
             # ----- header line (top) -----
             if self._header_text:
@@ -212,7 +223,8 @@ if __name__ == "__main__":
     disp = TwoLineDisplay(dev)
 
     disp.display_header("FM 90.3 Super Long Station Name That Scrolls")
-    disp.display_text("Now playing: An extremely long song title that will scroll nicely.")
+    disp.display_text(
+        "Now playing: An extremely long song title that will scroll nicely.")
 
     try:
         while True:

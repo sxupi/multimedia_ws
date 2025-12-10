@@ -7,13 +7,13 @@ class LCDDisplayNode(Node):
 
     def __init__(self):
         super().__init__('lcd_displayer')
-        self.command_subscriber_ = self.create_subscription(
+        self.first_line_subscriber_ = self.create_subscription(
             String,
             '/display/first_line_string',
             self.__set_first_line_callback,
             10
         )
-        self.command_subscriber_ = self.create_subscription(
+        self.second_line_subscriber_ = self.create_subscription(
             String,
             '/display/second_line_string',
             self.__set_second_line_callback,

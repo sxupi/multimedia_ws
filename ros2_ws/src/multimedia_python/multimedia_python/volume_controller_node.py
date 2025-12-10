@@ -17,9 +17,15 @@ class VolumeControllerNode(Node):
             self.__volume_command_callback,
             10
         )
-        self.volume_subscriber_ = self.create_subscription(
+        self.volume_pot_subscriber_ = self.create_subscription(
             Float32,
             '/potentiometer/volume_float32',
+            self.__volume_received_callback,
+            10
+        )
+        self.volume_web_subscriber_ = self.create_subscription(
+            Float32,
+            '/web_remote/volume_float32',
             self.__volume_received_callback,
             10
         )

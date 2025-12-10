@@ -36,6 +36,7 @@ class IRReceiverNode(Node):
 
     def __ir_received(self, code) -> None:
         msg = String()
+        self.get_logger().info('Command: {0} from {1}'.format(code, self.COMMAND_MAPPINGS))
         msg.data = self.COMMAND_MAPPINGS[code]
         self.__command_publisher_.publish(msg)
         self.get_logger().info('Publishing received command: {0} ({1})'.format(msg.data, code))

@@ -1,12 +1,12 @@
 from rclpy.node import Node
-from std_msgs.msg import Float32, String
+from std_msgs.msg import String
 
 from .external.LCD import LCD
 
 class LCDDisplayNode(Node):
 
     def __init__(self):
-        super().__init__('volume_controller')
+        super().__init__('lcd_displayer')
         self.first_line_subscriber_ = self.create_subscription(
             String,
             '/lcd_display/first_string',

@@ -73,7 +73,6 @@ class IRReceiverNode(Node):
 
         try:
             self._code_queue.put_nowait(code)
-            # print(code)  # optional debug
         except queue.Full:
             # Option A: drop the new code
             # self.get_logger() is NOT safe here (external thread),
@@ -82,6 +81,7 @@ class IRReceiverNode(Node):
                 # Option B: drop oldest and insert newest
                 _ = self._code_queue.get_nowait()
                 self._code_queue.put_nowait(code)
+                print(code)
             except queue.Empty:
                 pass
 
@@ -99,7 +99,7 @@ class IRReceiverNode(Node):
             except queue.Empty:
                 break
 
-            self.get_logger().debug(f"Processing IR code from queue: {code}")
+            self.get_logger().info(f"Processing IR code from queue: {code}")
 
             command = self.COMMAND_MAPPINGS.get(code)
 

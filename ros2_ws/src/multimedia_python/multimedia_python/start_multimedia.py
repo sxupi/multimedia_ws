@@ -15,14 +15,15 @@ def main(args=None):
     ir_receiver_node = IRReceiverNode()
 
     executor = MultiThreadedExecutor()
-    #executor.add_node(volume_controller_node)
-    #executor.add_node(frequency_controller_node)
-    executor.add_node(lcd_display_node)
-    #executor.add_node(ir_receiver_node)
+    executor.add_node(volume_controller_node)
+    executor.add_node(frequency_controller_node)
+    #executor.add_node(lcd_display_node)
+    executor.add_node(ir_receiver_node)
 
     print('Starting to spin the executor now')
     try:
-        executor.spin()
+        #executor.spin()
+        rclpy.spin(lcd_display_node)
     except KeyboardInterrupt:
         pass
     finally:

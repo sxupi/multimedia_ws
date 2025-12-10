@@ -28,14 +28,17 @@ class LCDDisplayNode(Node):
         self.__refresh_display()
 
     def __set_first_line_callback(self, msg: String) -> None:
+        self.get_logger().info(f'Received first line data: {msg.data}')
         self._first_line = msg.data
         self.__refresh_display()
 
     def __set_second_line_callback(self, msg: String) -> None:
+        self.get_logger().info(f'Received second line data: {msg.data}')
         self._second_line = msg.data
         self.__refresh_display()
 
     def __refresh_display(self) -> None:
+        self.get_logger().info(f'Refreshing the screen with first line="{self._first_line}" and second line="{self._second_line}"')
         self._lcd.clear()
         self._lcd.message(self._first_line, 1)
         self._lcd.message(self._second_line, 2)

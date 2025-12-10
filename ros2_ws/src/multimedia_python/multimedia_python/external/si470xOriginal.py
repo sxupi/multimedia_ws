@@ -167,7 +167,7 @@ def seek(direction):
         read_registers()
         if ((reg[STATUSRSSI] & (1<<14)) != 0):
             break
-    print "Trying Station ", float(float(getchannel())/float(10))
+    print( "Trying Station ", float(float(getchannel())/float(10)))
     read_registers()
     valuesfbl = reg[STATUSRSSI] & (1<<13)
     reg[POWERCFG] &= ~(1<<8)
@@ -180,23 +180,23 @@ init() #init stuff
 changechannel(1011) #101.1 The Fox in Kansas City, Classic Rock!!
 setvolume(currvol)
 
-#print float(float(getchannel())/float(10))
+#print( float(float(getchannel())/float(10))
 
 ans = True
 while ans:
-    print ("f) Go to 101.1 The Fox")
-    print ("+) Increase Volume")
-    print ("-) Decrease Volume")
-    print ("=) Channel Number (=101.1)")
-    print ("w) Tune Up")
-    print ("s) Tune Down")
-    print ("c) Print Current Channel")
-    print ("d) Display Status")
-    print ("r} Write RDS")
-    print ("r2} Display RDS Groups 2A")
-    print ("4) Seek Down")
-    print ("5) Seek Up")
-    print ("")
+    print( ("f) Go to 101.1 The Fox"))
+    print( ("+) Increase Volume"))
+    print( ("-) Decrease Volume"))
+    print( ("=) Channel Number (=101.1)"))
+    print( ("w) Tune Up"))
+    print( ("s) Tune Down"))
+    print( ("c) print( Current Channel"))
+    print( ("d) Display Status"))
+    print( ("r} Write RDS"))
+    print( ("r2} Display RDS Groups 2A"))
+    print( ("4) Seek Down"))
+    print( ("5) Seek Up"))
+    print( (""))
    
     ans = raw_input(">")
     if ans == "5":
@@ -209,9 +209,9 @@ while ans:
         currvol += 1
         setvolume (currvol)
     if ans == "c":
-        print
-        print "Curr Chan=", float(float(getchannel())/float(10))
-        print
+        print()
+        print( "Curr Chan=", float(float(getchannel())/float(10)))
+        print()
     if ans == "-":
         currvol -= 1
         setvolume (currvol)
@@ -231,44 +231,44 @@ while ans:
         wc = float(ans[1:])
         wc *= 10
         if wc < 878 or wc > 1080:
-            print ("Invalid Channel")
-            print ("")
+            print( ("Invalid Channel"))
+            print( (""))
         else:   
             changechannel(int(wc))
            
     if ans == "d":
         read_registers()
-        print
-        print ("Radio Status:")
+        print()
+        print( ("Radio Status:"))
         if reg[STATUSRSSI] & (1<<15):
-            print "RDS Available -",
+            print( "RDS Available -",)
             blockerr = reg[STATUSRSSI] & 0x0600 >> 9
             if blockerr == 0:
-                print ("No RDS Errors")
+                print( ("No RDS Errors"))
             if blockerr == 1:
-                print ("1-2 RDS Errors")
+                print( ("1-2 RDS Errors"))
             if blockerr == 2:
-                print ("3-5 RDS Errors")
+                print( ("3-5 RDS Errors"))
             if blockerr == 3:
-                print ("6+ RDS Errors")
-            print
+                print( ("6+ RDS Errors"))
+            print()
             #r1 = z[:16 - len(bin(reg[RDSA])[2:])] + bin(reg[RDSA])[2:]
             r2 = z[:16 - len(bin(reg[RDSB])[2:])] + bin(reg[RDSB])[2:]
             r3 = z[:16 - len(bin(reg[RDSC])[2:])] + bin(reg[RDSC])[2:]
             r4 = z[:16 - len(bin(reg[RDSD])[2:])] + bin(reg[RDSD])[2:]
-            #print r1
-            print r2
-            print r3
-            print r4
-            print
+            #print( r1
+            print( r2)
+            print( r3)
+            print( r4)
+            print()
         else:
-            print ("RDS Not Available")
+            print( ("RDS Not Available"))
            
         if reg[STATUSRSSI] & (1<<8):
-            print ("Stereo")
+            print( ("Stereo"))
         else:
-            print ("Mono")
-        print
+            print( ("Mono"))
+        print()
 
     if ans == "r":
         #h1=""
@@ -286,7 +286,7 @@ while ans:
                 r4 = z[:16 - len(bin(reg[RDSD])[2:])] + bin(reg[RDSD])[2:]
                 if h2 != r2 or h3 != r3 or h4 != r4:
                     f.write(r2 + "," + r3 + "," + r4 + "\n")
-                    print wc
+                    print( wc)
                     wc += 1
                     #h1 = r1
                     h2 = r2
@@ -311,7 +311,7 @@ while ans:
                 r4 = z[:16 - len(bin(reg[RDSD])[2:])] + bin(reg[RDSD])[2:]
                 if h2 != r2 or h3 != r3 or h4 != r4:
                     f.write(r2 + "," + r3 + "," + r4 + "\n")
-                    #print wc
+                    #print( wc
                     wc += 1
                     #h1 = r1
                     h2 = r2
@@ -325,16 +325,16 @@ while ans:
                         type = "B"
                     code =  str(value) + type
                     #time.sleep(.)
-                    #print code
+                    #print( code
                     if code == "2B":
                         chars = chr(int(r3[:8],2)) + chr(int(r3[9:],2)) + chr(int(r4[:8],2)) + chr(int(r4[9:],2))
                         index = int(r2[12:],2)
-                        #print hex(int(r3[:8],2)) + '-' + hex(int(r3[9:],2)) + '-' + hex(int(r4[:8],2)) + '-' + hex(int(r4[9:],2))
-                        print str(index) + '-' +  chars
+                        #print( hex(int(r3[:8],2)) + '-' + hex(int(r3[9:],2)) + '-' + hex(int(r4[:8],2)) + '-' + hex(int(r4[9:],2))
+                        print( str(index) + '-' +  chars)
                         if index == 0 and mi != 0:
-                            print
-                            print "RDS MSG = " + msg
-                            print
+                            print()
+                            print( "RDS MSG = " + msg)
+                            print()
                             break
                         if index == mi:
                             msg += chars

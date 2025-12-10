@@ -23,7 +23,7 @@ class IRReceiverNode(Node):
             '/ir_receiver/command',
             10
         )
-        self.__ir_module = IRModule.IRRemote(self.__ir_received)
+        self.__ir_module = IRModule.IRRemote()#self.__ir_received)
 
         # Needs to be set
         GPIO.setwarnings(False)
@@ -33,6 +33,7 @@ class IRReceiverNode(Node):
 
         # No need to print out high and low durations
         self.__ir_module.set_verbose(False)
+        self.__ir_module.set_callback('DECODE')
 
         self.get_logger().info('Initialized IR receiver node with commands: {0}'.format(self.COMMAND_MAPPINGS))
 

@@ -21,6 +21,13 @@ class DisplayNode(Node):
             self.__text_callback,
             10
         )
+        # To show that the display changes
+        self.command_display_subscription = self.create_subscription(
+            String,
+            '/remote/command_string',
+            self.__text_callback,
+            10
+        )
 
         self._device = create_device()
         self._display = TwoLineDisplay(self._device)

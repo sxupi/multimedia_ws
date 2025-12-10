@@ -1,289 +1,290 @@
-#!/usr/bin/env python3
+# multimedia_python/external/si470x.py
 
-# RDS FM Radio logger based on the si470x break-out board from spark-fun connected to a raspberry pi
-# The si470x IC is continually polled and the RDS Message is logged to file
-# File format is <UNIX TIMESTAMP>,<STATION IN MHZ>,<RDS MESSAGE>
-# Cobbled together by Grant Trebbin www.grant-trebbin.com
-# The hard work was done by the people below
-
-# Original code by KansasCode on the Raspberry Pi Forums
-# www.raspberrypi.org/forums/viewtopic.php?t=28920
-# Logging code from Stephen Phillips
-# blog.scphillips.com/2013/07/getting-a-python-script-to-run-in-the-background-as-a-service-on-boot/
-
-# Ported to Python 3
+import time
+import os
 
 import RPi.GPIO as GPIO
 import smbus
-import time
-import logging
-import logging.handlers
-import os
-
-# configure logger
-LOG_FILENAME = "/var/log/si470x/si470x.log"
-LOG_LEVEL = logging.INFO
-logger = logging.getLogger(__name__)
-logger.setLevel(LOG_LEVEL)
-
-# Make sure the directory exists (optional but helpful)
-os.makedirs(os.path.dirname(LOG_FILENAME), exist_ok=True)
-
-handler = logging.handlers.TimedRotatingFileHandler(
-    LOG_FILENAME,
-    when="h",
-    backupCount=6720
-)
-logger.addHandler(handler)
-
-GPIO.setwarnings(False)
-
-i2c = smbus.SMBus(1)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(23, GPIO.OUT)
-GPIO.setup(0, GPIO.OUT)
-
-# create 16 registers for SI4703
-reg = [0] * 16
-
-# Register Descriptions
-DEVICEID = 0x00
-CHIPID = 0x01
-POWERCFG = 0x02
-CHANNEL = 0x03
-SYSCONFIG1 = 0x04
-SYSCONFIG2 = 0x05
-SYSCONFIG3 = 0x06
-OSCILLATOR = 0x07
-STATUSRSSI = 0x0A
-READCHAN = 0x0B
-RDSA = 0x0C
-RDSB = 0x0D
-RDSC = 0x0E
-RDSD = 0x0F
-
-z = "000000000000000"
-
-# found using i2cdetect utility
-si4703_addr = 0x10
-
-# create list to write registers
-# only need to write registers 2-7 and since first byte is in the write
-# command then only need 11 bytes to write
-writereg = [0] * 11
-
-# read 32 bytes
-readreg = [0] * 32
 
 
-def write_registers():
-    # starts writing at register 2
-    # but first byte is in the i2c write command
-    global writereg
-    global reg
-    global readreg
+class Si4703Radio:
+    """Driver for the Si4703 FM receiver with basic tuning, volume and RDS."""
 
-    cmd, writereg[0] = divmod(reg[2], 1 << 8)
-    writereg[1], writereg[2] = divmod(reg[3], 1 << 8)
-    writereg[3], writereg[4] = divmod(reg[4], 1 << 8)
-    writereg[5], writereg[6] = divmod(reg[5], 1 << 8)
-    writereg[7], writereg[8] = divmod(reg[6], 1 << 8)
-    writereg[9], writereg[10] = divmod(reg[7], 1 << 8)
+    # Register indices
+    DEVICEID = 0x00
+    CHIPID = 0x01
+    POWERCFG = 0x02
+    CHANNEL = 0x03
+    SYSCONFIG1 = 0x04
+    SYSCONFIG2 = 0x05
+    SYSCONFIG3 = 0x06
+    OSCILLATOR = 0x07
+    STATUSRSSI = 0x0A
+    READCHAN = 0x0B
+    RDSA = 0x0C
+    RDSB = 0x0D
+    RDSC = 0x0E
+    RDSD = 0x0F
 
-    i2c.write_i2c_block_data(si4703_addr, cmd, writereg)
-    readreg[16] = cmd  # readreg
-    read_registers()
+    def __init__(self, i2c_addr=0x10, reset_pin=23, bus_id=1, enable_pin=0):
+        """
+        :param i2c_addr: I2C address of the Si4703 (default 0x10)
+        :param reset_pin: GPIO pin used as RESET for the Si4703
+        :param bus_id: I2C bus number (1 on Raspberry Pi)
+        :param enable_pin: GPIO pin used for SEN/enable (like original code used GPIO 0)
+        """
+        self.i2c_addr = i2c_addr
+        self.reset_pin = reset_pin
+        self.enable_pin = enable_pin
 
+        # I2C and GPIO setup
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.reset_pin, GPIO.OUT)
+        GPIO.setup(self.enable_pin, GPIO.OUT)
 
-def read_registers():
-    global readreg
-    global reg
-    readreg = i2c.read_i2c_block_data(si4703_addr, readreg[16], 32)
+        self.i2c = smbus.SMBus(bus_id)
 
-    reg[10] = readreg[0] * 256 + readreg[1]
-    reg[11] = readreg[2] * 256 + readreg[3]
-    reg[12] = readreg[4] * 256 + readreg[5]
-    reg[13] = readreg[6] * 256 + readreg[7]
-    reg[14] = readreg[8] * 256 + readreg[9]
-    reg[15] = readreg[10] * 256 + readreg[11]
-    reg[0] = readreg[12] * 256 + readreg[13]
-    reg[1] = readreg[14] * 256 + readreg[15]
-    reg[2] = readreg[16] * 256 + readreg[17]
-    reg[3] = readreg[18] * 256 + readreg[19]
-    reg[4] = readreg[20] * 256 + readreg[21]
-    reg[5] = readreg[22] * 256 + readreg[23]
-    reg[6] = readreg[24] * 256 + readreg[25]
-    reg[7] = readreg[26] * 256 + readreg[27]
-    reg[8] = readreg[28] * 256 + readreg[29]
-    reg[9] = readreg[30] * 256 + readreg[31]
+        # Internal register image
+        self.reg = [0] * 16
+        self._read_buf = [0] * 32
+        self._write_buf = [0] * 11
 
+        # Last RDS message
+        self._rds_text = ""
 
-def getchannel():
-    read_registers()
-    channel = reg[READCHAN] & 0x03FF
-    channel *= 2
-    channel += 875
-    return channel
+        # For bit string padding in RDS
+        self._z = "0" * 15
 
+        # Initialize the chip
+        self._init_radio()
 
-def changechannel(newchannel):
-    if newchannel < 878 or newchannel > 1080:
-        return
-    global reg
-    # Keep everything integer (Python 3: use // instead of /)
-    newchannel *= 10
-    newchannel -= 8750
-    newchannel //= 20  # integer division
+    # -------------------- Low level I2C helpers --------------------
 
-    read_registers()
-    reg[CHANNEL] &= 0xFE00  # Clear out the channel bits
-    reg[CHANNEL] |= newchannel  # Mask in the new channel
-    reg[CHANNEL] |= (1 << 15)  # Set the TUNE bit to start
-    write_registers()
-    while True:
-        read_registers()
-        if (reg[STATUSRSSI] & (1 << 14)) != 0:
-            break
-    reg[CHANNEL] &= ~(1 << 15)
-    write_registers()
+    def _write_registers(self):
+        # starts writing at register 2, first byte in I2C command
+        cmd, self._write_buf[0] = divmod(self.reg[self.POWERCFG], 1 << 8)
+        self._write_buf[1], self._write_buf[2] = divmod(self.reg[self.CHANNEL], 1 << 8)
+        self._write_buf[3], self._write_buf[4] = divmod(self.reg[self.SYSCONFIG1], 1 << 8)
+        self._write_buf[5], self._write_buf[6] = divmod(self.reg[self.SYSCONFIG2], 1 << 8)
+        self._write_buf[7], self._write_buf[8] = divmod(self.reg[self.SYSCONFIG3], 1 << 8)
+        self._write_buf[9], self._write_buf[10] = divmod(self.reg[self.OSCILLATOR], 1 << 8)
 
+        self.i2c.write_i2c_block_data(self.i2c_addr, cmd, self._write_buf)
+        self._read_buf[16] = cmd
+        self._read_registers()
 
-def setvolume(newvolume):
-    global reg
-    if newvolume > 15:
-        newvolume = 15
-    if newvolume < 0:
-        newvolume = 0
-    read_registers()
-    reg[SYSCONFIG2] &= 0xFFF0  # Clear volume bits
-    reg[SYSCONFIG2] = newvolume  # Set volume to lowest
-    write_registers()
+    def _read_registers(self):
+        self._read_buf = self.i2c.read_i2c_block_data(self.i2c_addr, self._read_buf[16], 32)
 
+        self.reg[10] = self._read_buf[0] * 256 + self._read_buf[1]
+        self.reg[11] = self._read_buf[2] * 256 + self._read_buf[3]
+        self.reg[12] = self._read_buf[4] * 256 + self._read_buf[5]
+        self.reg[13] = self._read_buf[6] * 256 + self._read_buf[7]
+        self.reg[14] = self._read_buf[8] * 256 + self._read_buf[9]
+        self.reg[15] = self._read_buf[10] * 256 + self._read_buf[11]
+        self.reg[0] = self._read_buf[12] * 256 + self._read_buf[13]
+        self.reg[1] = self._read_buf[14] * 256 + self._read_buf[15]
+        self.reg[2] = self._read_buf[16] * 256 + self._read_buf[17]
+        self.reg[3] = self._read_buf[18] * 256 + self._read_buf[19]
+        self.reg[4] = self._read_buf[20] * 256 + self._read_buf[21]
+        self.reg[5] = self._read_buf[22] * 256 + self._read_buf[23]
+        self.reg[6] = self._read_buf[24] * 256 + self._read_buf[25]
+        self.reg[7] = self._read_buf[26] * 256 + self._read_buf[27]
+        self.reg[8] = self._read_buf[28] * 256 + self._read_buf[29]
+        self.reg[9] = self._read_buf[30] * 256 + self._read_buf[31]
 
-def init():
-    # init code needs to activate 2-wire (i2c) mode
-    # the si4703 will not show up in i2cdetect until
-    # you do these steps to put it into 2-wire (i2c) mode
+    # -------------------- Init / basic control --------------------
 
-    GPIO.output(0, GPIO.LOW)
-    time.sleep(0.1)
-    GPIO.output(23, GPIO.LOW)
-    time.sleep(0.1)
-    GPIO.output(23, GPIO.HIGH)
-    time.sleep(0.1)
+    def _init_radio(self):
+        """
+        Put the chip into 2-wire (I2C) mode and configure basic settings.
+        Mirrors the original init() logic.
+        """
+        # Enter 2-wire mode: enable_pin low, then toggle reset
+        GPIO.output(self.enable_pin, GPIO.LOW)
+        time.sleep(0.1)
+        GPIO.output(self.reset_pin, GPIO.LOW)
+        time.sleep(0.1)
+        GPIO.output(self.reset_pin, GPIO.HIGH)
+        time.sleep(0.1)
 
-    read_registers()
-    # do init step, turn on oscillator
-    reg[OSCILLATOR] = 0x8100
-    write_registers()
-    time.sleep(1)
+        self._read_registers()
+        # Turn on oscillator
+        self.reg[self.OSCILLATOR] = 0x8100
+        self._write_registers()
+        time.sleep(1.0)
 
-    read_registers()
-    reg[POWERCFG] = 0x4001  # Enable the Radio IC and turn off muted
-    write_registers()
-    time.sleep(0.1)
+        self._read_registers()
+        # Enable radio, unmute
+        self.reg[self.POWERCFG] = 0x4001
+        self._write_registers()
+        time.sleep(0.1)
 
-    read_registers()
-    reg[SYSCONFIG1] |= (1 << 12)  # Enable RDS
-    reg[SYSCONFIG2] &= 0xFFF0  # Clear volume bits
-    reg[SYSCONFIG2] = 0x0000  # Set volume to lowest
-    # Set extended volume range (too loud for me without this)
-    reg[SYSCONFIG3] = 0x0100
-    write_registers()
+        self._read_registers()
+        # Enable RDS, min volume, extended range
+        self.reg[self.SYSCONFIG1] |= (1 << 12)       # RDS
+        self.reg[self.SYSCONFIG2] &= 0xFFF0          # clear volume bits
+        self.reg[self.SYSCONFIG2] = 0x0000           # min volume
+        self.reg[self.SYSCONFIG3] = 0x0100           # extended volume range
+        self._write_registers()
 
+    # -------------------- Public API used by your node --------------------
 
-def seek(direction):
-    read_registers()
-    reg[POWERCFG] |= (1 << 10)
-    if direction == 0:
-        reg[POWERCFG] &= ~(1 << 1)
-    else:
-        reg[POWERCFG] |= (1 << 9)
-    reg[POWERCFG] |= (1 << 8)
-    write_registers()
-    while True:
-        read_registers()
-        if (reg[STATUSRSSI] & (1 << 14)) != 0:
-            break
-    print("Trying Station", float(getchannel()) / 10.0)
-    read_registers()
-    valuesfbl = reg[STATUSRSSI] & (1 << 13)  # noqa: F841 (unused)
-    reg[POWERCFG] &= ~(1 << 8)
-    write_registers()
+    def si4703SetVolume(self, new_volume: int):
+        """Set volume 0–15."""
+        if new_volume > 15:
+            new_volume = 15
+        if new_volume < 0:
+            new_volume = 0
 
+        self._read_registers()
+        self.reg[self.SYSCONFIG2] &= 0xFFF0  # Clear volume bits
+        self.reg[self.SYSCONFIG2] |= new_volume
+        self._write_registers()
 
-currvol = 15
-init()  # init stuff
+    def si4703GetChannel(self) -> int:
+        """
+        Get current tuned channel in '0.1 MHz steps', e.g. 1045 = 104.5 MHz.
+        Matches your use of Int32 frequency.
+        """
+        self._read_registers()
+        channel = self.reg[self.READCHAN] & 0x03FF
+        channel *= 2
+        channel += 875
+        return channel
 
-changechannel(1045)  # 104.5 MHz
-setvolume(currvol)
+    def si4703SetChannel(self, freq_01mhz: int):
+        """
+        Set tuned channel.
+        freq_01mhz = 1045 => 104.5 MHz.
+        Valid range: 87.8–108.0 MHz -> 878..1080 (same as original).
+        """
+        if freq_01mhz < 878 or freq_01mhz > 1080:
+            return
 
-while True:
-    logdata = " "
-    logdata = str(float(getchannel()) / 10.0)
-    msg = u''
-    mi = 0
-    h2 = ""
-    h3 = ""
-    h4 = ""
-    wc = 0
+        self._read_registers()
 
-    while True:
-        read_registers()
-        if reg[STATUSRSSI] & (1 << 15):
-            r2 = z[:16 - len(bin(reg[RDSB])[2:])] + bin(reg[RDSB])[2:]
-            r3 = z[:16 - len(bin(reg[RDSC])[2:])] + bin(reg[RDSC])[2:]
-            r4 = z[:16 - len(bin(reg[RDSD])[2:])] + bin(reg[RDSD])[2:]
+        # Convert from 0.1 MHz units to channel bits (integer math)
+        new_channel = freq_01mhz * 10          # e.g. 10450
+        new_channel -= 8750
+        new_channel //= 20                     # original formula
 
-            if h2 != r2 or h3 != r3 or h4 != r4:
-                wc += 1
-                h2 = r2
-                h3 = r3
-                h4 = r4
+        # Clear channel bits and set new channel
+        self.reg[self.CHANNEL] &= 0xFE00
+        self.reg[self.CHANNEL] |= new_channel
+        self.reg[self.CHANNEL] |= (1 << 15)    # TUNE bit
+        self._write_registers()
 
-                value = int(r2[:4], 2)
-                value2 = int(r2[5:-5], 2)
+        # Wait for tune complete (STC)
+        while True:
+            self._read_registers()
+            if (self.reg[self.STATUSRSSI] & (1 << 14)) != 0:
+                break
 
-                if value2 == 0:
-                    Mtype = "A"
-                else:
-                    Mtype = "B"
+        # Clear TUNE bit
+        self.reg[self.CHANNEL] &= ~(1 << 15)
+        self._write_registers()
 
-                code = str(value) + Mtype
+    def _seek(self, direction_up: bool):
+        """
+        Internal seek helper. direction_up=True => Seek up, False => down.
+        """
+        self._read_registers()
 
-                if code == "2B":
-                    chars = (
-                        chr(int(r3[:8], 2)) +
-                        chr(int(r3[9:], 2)) +
-                        chr(int(r4[:8], 2)) +
-                        chr(int(r4[9:], 2))
-                    )
-                    index = int(r2[12:], 2)
+        # Set SEEK bit
+        self.reg[self.POWERCFG] |= (1 << 10)
 
-                    if index == 0 and mi != 0:
-                        # remove comma from message to prevent corruption of csv file
-                        msg = msg.translate(dict.fromkeys([ord(',')], None))
+        if direction_up:
+            self.reg[self.POWERCFG] |= (1 << 9)   # SEEKUP
+        else:
+            self.reg[self.POWERCFG] &= ~(1 << 9)  # clear SEEKUP
 
-                        # remove control characters, they can corrupt the message
-                        msg = msg.translate(
-                            dict.fromkeys(
-                                range(ord('\x00'), ord('\x1f')), None)
+        self.reg[self.POWERCFG] |= (1 << 8)       # START SEEK
+        self._write_registers()
+
+        # Wait for STC
+        while True:
+            self._read_registers()
+            if (self.reg[self.STATUSRSSI] & (1 << 14)) != 0:
+                break
+
+        # Clear SEEK bit
+        self.reg[self.POWERCFG] &= ~(1 << 8)
+        self._write_registers()
+
+    def si4703SeekUp(self):
+        self._seek(True)
+
+    def si4703SeekDown(self):
+        self._seek(False)
+
+    # -------------------- RDS handling (simplified from logger) --------------------
+
+    def si4703ClearRDSBuffers(self):
+        self._rds_text = ""
+
+    def si4703ProcessRDS(self, max_groups: int = 500):
+        """
+        Poll RDS data for up to max_groups changes and build a message
+        (roughly equivalent to the "msg" creation in the original logger).
+        """
+        msg = ""
+        mi = 0
+        h2 = ""
+        h3 = ""
+        h4 = ""
+        wc = 0
+
+        while wc < max_groups:
+            self._read_registers()
+
+            # RDSR bit (RDS ready)
+            if self.reg[self.STATUSRSSI] & (1 << 15):
+                z = self._z
+                r2 = z[:16 - len(bin(self.reg[self.RDSB])[2:])] + bin(self.reg[self.RDSB])[2:]
+                r3 = z[:16 - len(bin(self.reg[self.RDSC])[2:])] + bin(self.reg[self.RDSC])[2:]
+                r4 = z[:16 - len(bin(self.reg[self.RDSD])[2:])] + bin(self.reg[self.RDSD])[2:]
+
+                if h2 != r2 or h3 != r3 or h4 != r4:
+                    wc += 1
+                    h2 = r2
+                    h3 = r3
+                    h4 = r4
+
+                    value = int(r2[:4], 2)
+                    value2 = int(r2[5:-5], 2)
+                    mtype = "A" if value2 == 0 else "B"
+                    code = f"{value}{mtype}"
+
+                    # The original script used "2B" (Radiotext B)
+                    if code == "2B":
+                        chars = (
+                            chr(int(r3[:8], 2)) +
+                            chr(int(r3[9:], 2)) +
+                            chr(int(r4[:8], 2)) +
+                            chr(int(r4[9:], 2))
                         )
+                        index = int(r2[12:], 2)
 
-                        # log and print only the ASCII characters
-                        safe = (
-                            str(int(time.time())) + "," + logdata + "," + msg
-                        )
-                        safe_ascii = safe.encode(
-                            'ascii', 'ignore').decode('ascii', 'ignore')
-                        logger.info(safe_ascii)
-                        print(safe_ascii)
-                        break
+                        # New cycle => full message collected
+                        if index == 0 and mi != 0:
+                            # Clean message
+                            msg = msg.translate({ord(','): None})
+                            msg = msg.translate({c: None for c in range(ord('\x00'), ord('\x1f'))})
+                            self._rds_text = msg
+                            return
 
-                    if index == mi:
-                        # In Python 3, chars is already str
-                        msg += chars
-                        mi += 1
+                        if index == mi:
+                            msg += chars
+                            mi += 1
 
-                if wc == 500:
-                    break
+        # If we get here, we didn't finish a full message
+        if msg:
+            msg = msg.translate({ord(','): None})
+            msg = msg.translate({c: None for c in range(ord('\x00'), ord('\x1f'))})
+            self._rds_text = msg
+
+    def si4703GetProgramService(self) -> str:
+        """Return last collected RDS text (Radiotext B in this implementation)."""
+        return self._rds_text or ""

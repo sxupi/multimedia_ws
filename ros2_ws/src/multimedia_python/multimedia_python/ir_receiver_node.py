@@ -39,9 +39,16 @@ class IRReceiverNode(Node):
             'Initialized IR receiver node with commands: {0}'.format(self.COMMAND_MAPPINGS))
 
     def __ir_received(self, code) -> None:
-        msg = String()
+        
         self.get_logger().info('Command: {0} ({1}) from {2}'.format(
             self.COMMAND_MAPPINGS.get(code), code, self.COMMAND_MAPPINGS))
-        # msg.data = self.COMMAND_MAPPINGS[code]
-        # self.__command_publisher_.publish(msg)
-        # self.get_logger().info('Publishing received command: {0} ({1})'.format(msg.data, code))
+        if code <= 0:
+            return
+
+        converted_code = self.COMMAND_MAPPINGS.get(code)
+
+        if converted_code is not None:
+            msg = String()
+            msg.data = converted_code
+            self.__command_publisher_.publish(msg)
+            self.get_logger().info('Publishing received command: {0} ({1})'.format(msg.data, code))

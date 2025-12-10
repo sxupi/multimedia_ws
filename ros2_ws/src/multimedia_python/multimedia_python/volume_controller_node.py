@@ -27,9 +27,20 @@ class VolumeControllerNode(Node):
             '/current/volume_float32',
             10
         )
+        self.test_publisher_ = self.create_publisher(
+            String,
+            '/lcd_display/first_string',
+            10
+        )
+        self.test2_publisher_ = self.create_publisher(
+            String,
+            '/lcd_display/second_string',
+            10
+        )
         self.__current_volume = 0
 
     def __volume_command_callback(self, msg: String) -> None:
+        self.test_publisher_.publish(msg)
         match msg.data:
             case 'HIGHER_VOLUME':
                 self.__higher_volume()
@@ -50,6 +61,11 @@ class VolumeControllerNode(Node):
         msg = Float32()
         msg.data = self.__current_volume
         self.volume_publisher_.publish(msg)
+
+        msg_str = String()
+        msg_str.data = str(self.__current_volume)
+        self.test2_publisher_.publish(msg_str)
+        
         self.get_logger().info('Publishing current volume: %f' % msg.data)
 
     def get_volume(self) -> float:

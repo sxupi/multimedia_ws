@@ -1,8 +1,6 @@
 from rclpy.node import Node
 from std_msgs.msg import String
 import RPi.GPIO as GPIO
-import queue
-import time
 
 from .external import IRModule
 
@@ -15,91 +13,32 @@ class IRReceiverNode(Node):
         0x300ff02fd: 'HIGHER_VOLUME',
         0x300ff9867: 'LOWER_VOLUME',
         0x300ff906f: 'NEXT',
-        0x300ffe01f: 'PREV',
+        0x300ffe01f: 'PREV'
     }
 
-    def __init__(self, pin: int = 23) -> None:
+    def __init__(self, bcm_num=23):
         super().__init__('ir_receiver')
-
-        self._pin = pin
-        self._command_pub = self.create_publisher(
+        self.__command_publisher_ = self.create_publisher(
             String,
             '/ir_receiver/command',
             10
         )
+        self.__ir_module = IRModule.IRRemote(self.__ir_received)
 
-        # Thread-safe queue: external threads push, ROS timer pops
-        self._code_queue = queue.Queue(maxsize=100)
-
-        self._debounce_interval = 0.25  # seconds; adjust to taste
-        self._last_code = None
-        self._last_time = 0.0
-
-        # IR decoder: will call _on_ir_code() from its own thread
-        self._ir = IRModule.IRRemote(self._on_ir_code)
-
-        # GPIO setup (BCM numbering)
+        # Needs to be set
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self._pin, GPIO.IN)
-        GPIO.add_event_detect(self._pin, GPIO.BOTH, callback=self._ir.pWidth)
+        GPIO.setup(bcm_num, GPIO.IN)
+        GPIO.add_event_detect(bcm_num, GPIO.BOTH, callback=self.__ir_module.pWidth)
 
-        # IR module config: no verbose timings, repeat enabled like example
-        self._ir.set_verbose(False)
+        # No need to print out high and low durations
+        self.__ir_module.set_verbose(False)
 
-        # Timer to process queued codes in ROS2 context
-        # 0.02 s = 50 Hz; adjust as you like
-        self._timer = self.create_timer(0.02, self._process_codes)
+        self.get_logger().info('Initialized IR receiver node with commands: {0}'.format(self.COMMAND_MAPPINGS))
 
-    def _on_ir_code(self, code) -> None:
-        """
-        Called by IRModule.IRRemote from its own thread.
-        Must NOT touch ROS directly; just enqueue.
-        """
-        try:
-            self._code_queue.put_nowait(code)
-        except queue.Full:
-            # Option A: drop the new code
-            # self.get_logger() is NOT safe here (external thread),
-            # so avoid logging; just drop silently.
-            try:
-                # Option B: drop oldest and insert newest
-                _ = self._code_queue.get_nowait()
-                self._code_queue.put_nowait(code)
-                print(code)
-            except queue.Empty:
-                pass
-
-    def _process_codes(self) -> None:
-        """
-        Runs in ROS2 executor thread via timer.
-        Safe place to use publishers and logging.
-        """
-        processed_any = False
-
-        while not self._code_queue.empty():
-            processed_any = True
-            try:
-                code = self._code_queue.get_nowait()
-            except queue.Empty:
-                break
-
-            self.get_logger().info(f"Processing IR code from queue: {code}")
-
-            command = self.COMMAND_MAPPINGS.get(code)
-
-            if command is not None:
-                msg = String()
-                msg.data = command
-                self._command_pub.publish(msg)
-                self.get_logger().info(
-                    f"Publishing received command: {msg.data} ({code})")
-            else:
-                self.get_logger().info(f"No command for {code} found")
-
-    def destroy_node(self):
-        try:
-            GPIO.cleanup(self._pin)
-        except Exception:
-            pass
-        return super().destroy_node()
+    def __ir_received(self, code) -> None:
+        msg = String()
+        self.get_logger().info('Command: {0} ({1}) from {2}'.format(self.COMMAND_MAPPINGS.get(code), code, self.COMMAND_MAPPINGS))
+        #msg.data = self.COMMAND_MAPPINGS[code]
+        #self.__command_publisher_.publish(msg)
+        #self.get_logger().info('Publishing received command: {0} ({1})'.format(msg.data, code))

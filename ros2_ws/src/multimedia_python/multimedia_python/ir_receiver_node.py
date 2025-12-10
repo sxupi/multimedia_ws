@@ -56,17 +56,6 @@ class IRReceiverNode(Node):
         Called by IRModule.IRRemote from its own thread.
         Must NOT touch ROS directly; just enqueue.
         """
-        now = time.monotonic()
-
-        # --- DEBOUNCE: ignore same code within debounce interval ---
-        if code == self._last_code and (now - self._last_time) < self._debounce_interval:
-            # Optionally, you could print for debugging:
-            # print(f"Debounced code {code}")
-            return
-
-        self._last_code = code
-        self._last_time = now
-
         try:
             self._code_queue.put_nowait(code)
         except queue.Full:

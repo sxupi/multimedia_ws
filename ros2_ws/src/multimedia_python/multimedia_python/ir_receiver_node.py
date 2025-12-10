@@ -20,7 +20,7 @@ class IRReceiverNode(Node):
 
     DEBOUNCE_THRESHOLD = 0.25
 
-    def __init__(self, bcm_num=23):
+    def __init__(self, bcm_num=24):
         super().__init__('ir_receiver')
         self.__command_publisher_ = self.create_publisher(
             String,

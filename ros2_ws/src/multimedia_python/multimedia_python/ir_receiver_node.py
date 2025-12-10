@@ -29,11 +29,11 @@ class IRReceiverNode(Node):
         )
 
         # Thread-safe queue: external threads push, ROS timer pops
-        self._code_queue: queue.Queue[int] = queue.Queue(maxsize=20)
+        self._code_queue = queue.Queue(maxsize=100)
 
         self._debounce_interval = 0.25  # seconds; adjust to taste
-        self._last_code: int | None = None
-        self._last_time: float = 0.0
+        self._last_code = None
+        self._last_time = 0.0
 
         # IR decoder: will call _on_ir_code() from its own thread
         self._ir = IRModule.IRRemote(self._on_ir_code)
@@ -51,11 +51,7 @@ class IRReceiverNode(Node):
         # 0.02 s = 50 Hz; adjust as you like
         self._timer = self.create_timer(0.02, self._process_codes)
 
-        self.get_logger().info(
-            f"Initialized IR receiver node on GPIO {self._pin} with commands: {self.COMMAND_MAPPINGS}"
-        )
-
-    def _on_ir_code(self, code: int) -> None:
+    def _on_ir_code(self, code) -> None:
         """
         Called by IRModule.IRRemote from its own thread.
         Must NOT touch ROS directly; just enqueue.

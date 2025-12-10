@@ -17,7 +17,6 @@
 #include "modules/freq_publisher/freq_publisher.c"
 #include "modules/volume_subscriber/volume_subscriber.c"
 #include "modules/freq_subscriber/freq_subscriber.c"
-#include "modules/lcd_subscriber/lcd_subscriber.c"
 
 static const char *MAIN_TAG = "APP";
 
@@ -63,10 +62,6 @@ void appMain(void)
     freq_subscriber_init(&support, &executor);
     ESP_LOGI(MAIN_TAG, "Frequency subscriber initialized");
 
-    ESP_LOGI(MAIN_TAG, "Initializing LCD subscriber");
-    lcd_subscriber_init(&support, &executor);
-    ESP_LOGI(MAIN_TAG, "Frequency LCD initialized");
-
     ESP_LOGI(MAIN_TAG, "Starting executor spin");
     for (;;)
     {
@@ -80,6 +75,5 @@ void appMain(void)
     freq_publisher_cleanup();
     volume_subscriber_cleanup();
     freq_subscriber_cleanup();
-    lcd_subscriber_cleanup();
     RCCHECK(rclc_support_fini(&support));
 }

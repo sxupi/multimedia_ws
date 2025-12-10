@@ -5,6 +5,8 @@ from std_msgs.msg import Float32, String
 class VolumeControllerNode(Node):
 
     COMMAND_VOLUME_CHANGE: float = 0.05
+    MIN_VOLUME: float = 0.0
+    MAX_VOLUME: float = 1.0
 
     def __init__(self):
         super().__init__('volume_controller')
@@ -55,8 +57,12 @@ class VolumeControllerNode(Node):
 
     def __higher_volume(self) -> None:
         self.__current_volume += self.COMMAND_VOLUME_CHANGE
+        if self.__current_volume > self.MAX_VOLUME:
+            self.__current_volume = self.MAX_VOLUME
         self.__publish_volume()
 
     def __lower_volume(self) -> None:
         self.__current_volume -= self.COMMAND_VOLUME_CHANGE
+        if self.__current_volume < self.MIN_VOLUME:
+            self.__current_volume = self.MIN_VOLUME
         self.__publish_volume()

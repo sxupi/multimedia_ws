@@ -60,8 +60,12 @@ class FrequencyControllerNode(Node):
 
     def __higher_frequency(self) -> None:
         self.__current_frequency += self.COMMAND_FREQ_CHANGE
+        if self.__current_frequency > self.MAX_FREQUENCY:
+            self.__current_frequency = self.MAX_FREQUENCY
         self.__publish_frequency()
 
     def __lower_frequency(self) -> None:
         self.__current_frequency -= self.COMMAND_FREQ_CHANGE
+        if self.__current_frequency < self.MIN_FREQUENCY:
+            self.__current_frequency = self.MIN_FREQUENCY
         self.__publish_frequency()

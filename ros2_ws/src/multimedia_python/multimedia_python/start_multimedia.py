@@ -24,6 +24,7 @@ def main(args=None):
     finally:
         volume_controller_node.destroy_node()
         frequency_controller_node.destroy_node()
+        ir_receiver_node.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':

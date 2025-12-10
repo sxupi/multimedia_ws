@@ -34,6 +34,8 @@ class IRReceiverNode(Node):
         # No need to print out high and low durations
         self.__ir_module.set_verbose(False)
 
+        self.get_logger().info('Initialized IR receiver node with commands: {0}'.format(self.COMMAND_MAPPINGS))
+
     def __ir_received(self, code) -> None:
         msg = String()
         self.get_logger().info('Command: {0} from {1}'.format(code, self.COMMAND_MAPPINGS))

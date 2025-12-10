@@ -9,13 +9,13 @@ class LCDDisplayNode(Node):
         super().__init__('lcd_displayer')
         self.first_line_subscriber_ = self.create_subscription(
             String,
-            '/display/first_line_string',
+            '/display/first_string',
             self.__set_first_line_callback,
             10
         )
         self.second_line_subscriber_ = self.create_subscription(
             String,
-            '/display/second_line_string',
+            '/display/second_string',
             self.__set_second_line_callback,
             10
         )

@@ -1,4 +1,5 @@
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from std_msgs.msg import String
 
 from .external.LCD import LCD
@@ -11,13 +12,13 @@ class LCDDisplayNode(Node):
             String,
             '/display/first_string',
             self.__set_first_line_callback,
-            10
+            qos_profile_sensor_data,
         )
         self.second_line_subscriber_ = self.create_subscription(
             String,
             '/display/second_string',
             self.__set_second_line_callback,
-            10
+            qos_profile_sensor_data
         )
 
         self._lcd = LCD(i2c_addr=39)

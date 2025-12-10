@@ -1,6 +1,8 @@
 from rclpy.node import Node
 from std_msgs.msg import String
 import RPi.GPIO as GPIO
+import time
+import threading
 
 from .external import IRModule
 
@@ -15,6 +17,8 @@ class IRReceiverNode(Node):
         16748655: 'NEXT',  # 0x300ff906f: 'NEXT',
         16769055: 'PREV'  # 0x300ffe01f: 'PREV'
     }
+
+    DEBOUNCE_THRESHOLD = 0.1
 
     def __init__(self, bcm_num=23):
         super().__init__('ir_receiver')
@@ -35,15 +39,19 @@ class IRReceiverNode(Node):
         # No need to print out high and low durations
         self.__ir_module.set_verbose(False)
 
-        self.get_logger().info(
-            'Initialized IR receiver node with commands: {0}'.format(self.COMMAND_MAPPINGS))
+        self._last_time = 0
+        self._lock = threading.Lock()
 
     def __ir_received(self, code) -> None:
-        
-        self.get_logger().info('Command: {0} ({1}) from {2}'.format(
-            self.COMMAND_MAPPINGS.get(code), code, self.COMMAND_MAPPINGS))
         if code <= 0:
             return
+
+        now = time.monotonic()
+
+        with self._lock:
+            if now - self._last_time < self.DEBOUNCE_THRESHOLD:
+                return
+            self._last_time = now
 
         converted_code = self.COMMAND_MAPPINGS.get(code)
 
@@ -51,4 +59,5 @@ class IRReceiverNode(Node):
             msg = String()
             msg.data = converted_code
             self.__command_publisher_.publish(msg)
-            self.get_logger().info('Publishing received command: {0} ({1})'.format(msg.data, code))
+            self.get_logger().info(
+                'Publishing received command: {0} ({1})'.format(msg.data, code))

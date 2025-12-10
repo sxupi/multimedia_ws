@@ -17,6 +17,7 @@ def main(args=None):
     executor.add_node(frequency_controller_node)
     executor.add_node(ir_receiver_node)
 
+    print('Starting to spin the executor now')
     try:
         executor.spin()
     except KeyboardInterrupt:

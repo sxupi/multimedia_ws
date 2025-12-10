@@ -2,6 +2,7 @@ from enum import Enum
 from threading import Thread
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
@@ -9,9 +10,16 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Float32
 
-# ---------------- FASTAPI SETUP ----------------
-
 app = FastAPI(title="Simple Command API")
+
+# Allow requests from any origin (for testing)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],        # in production you can restrict this
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class Command(str, Enum):
@@ -68,6 +76,7 @@ async def send_command(request: CommandRequest):
         "value": request.value,
     }
 
+
 class CommandApiNode(Node):
     def __init__(self):
         super().__init__("command_api_node")
@@ -101,6 +110,7 @@ class CommandApiNode(Node):
 
         thread = Thread(target=server.run, daemon=True)
         thread.start()
+
 
 def main(args=None):
     global ros_node

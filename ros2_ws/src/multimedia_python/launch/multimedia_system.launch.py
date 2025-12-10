@@ -29,4 +29,9 @@ def generate_launch_description():
             executable='display_node',
             name='display_node'
         ),
+        Node(
+            package='multimedia_python',
+            executable='web_controller',
+            name='web_controller'
+        ),
     ])

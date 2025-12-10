@@ -1,3 +1,4 @@
+import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -39,3 +40,22 @@ class LCDDisplayNode(Node):
         self._lcd.clear()
         self._lcd.message(self._first_line, 1)
         self._lcd.message(self._second_line, 2)
+
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = LCDDisplayNode()
+
+    print('Starting to spin the LCD display node now')
+    try:
+        node.spin()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == '__main__':
+    main()

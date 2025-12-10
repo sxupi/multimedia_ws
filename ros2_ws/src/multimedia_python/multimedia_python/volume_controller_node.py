@@ -1,3 +1,4 @@
+import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32, String
 
@@ -50,7 +51,7 @@ class VolumeControllerNode(Node):
         msg = Float32()
         msg.data = self.__current_volume
         self.volume_publisher_.publish(msg)
-        
+
         self.get_logger().info('Publishing current volume: %f' % msg.data)
 
     def get_volume(self) -> float:
@@ -67,3 +68,21 @@ class VolumeControllerNode(Node):
         if self.__current_volume < self.MIN_VOLUME:
             self.__current_volume = self.MIN_VOLUME
         self.__publish_volume()
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = VolumeControllerNode()
+
+    print('Starting to spin the volume controller node now')
+    try:
+        node.spin()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == '__main__':
+    main()

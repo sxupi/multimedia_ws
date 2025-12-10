@@ -4,7 +4,8 @@ from std_msgs.msg import Int32, Float32, String
 
 from .external.si4703Library import si4703Radio
 
-class IRReceiverNode(Node):
+
+class RadioNode(Node):
 
     def __init__(self):
         self.frequency_subscriber_ = self.create_subscription(
@@ -37,7 +38,7 @@ class IRReceiverNode(Node):
         )
 
         self._radio = si4703Radio(i2cAddr=0x10, resetPin=23)
-    
+
     def __volume_change_callback(self, msg: Float32) -> None:
         pass
 
@@ -46,3 +47,21 @@ class IRReceiverNode(Node):
 
     def __incoming_command_callback(self, msg: String) -> None:
         pass
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = RadioNode()
+
+    print('Starting to spin the radio node now')
+    try:
+        node.spin()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == '__main__':
+    main()

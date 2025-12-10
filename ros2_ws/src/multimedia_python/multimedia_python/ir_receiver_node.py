@@ -1,3 +1,4 @@
+import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 import RPi.GPIO as GPIO
@@ -61,3 +62,21 @@ class IRReceiverNode(Node):
             self.__command_publisher_.publish(msg)
             self.get_logger().info(
                 'Publishing received command: {0} ({1})'.format(msg.data, code))
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = IRReceiverNode()
+
+    print('Starting to spin the IR receiver node now')
+    try:
+        node.spin()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == '__main__':
+    main()

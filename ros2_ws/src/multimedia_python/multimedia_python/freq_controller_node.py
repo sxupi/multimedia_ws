@@ -1,3 +1,4 @@
+import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32, Float32, String
 
@@ -69,3 +70,22 @@ class FrequencyControllerNode(Node):
         if self.__current_frequency < self.MIN_FREQUENCY:
             self.__current_frequency = self.MIN_FREQUENCY
         self.__publish_frequency()
+
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = FrequencyControllerNode()
+
+    print('Starting to spin the frequency controller node now')
+    try:
+        node.spin()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == '__main__':
+    main()

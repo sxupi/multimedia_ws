@@ -11,12 +11,12 @@ class FrequencyControllerNode(Node):
 
     def __init__(self):
         super().__init__('frequency_controller')
-        self.command_subscriber_ = self.create_subscription(
-            String,
-            '/remote/command_string',
-            self.__frequency_command_callback,
-            10
-        )
+        #self.command_subscriber_ = self.create_subscription(
+        #    String,
+        #    '/remote/command_string',
+        #    self.__frequency_command_callback,
+        #    10
+        #)
         self.frequency_subscriber_ = self.create_subscription(
             Float32,
             'potentiometer/frequency_float32',
@@ -30,16 +30,16 @@ class FrequencyControllerNode(Node):
         )
         self.__current_frequency = 875
 
-    def __frequency_command_callback(self, msg: String) -> None:
-        match msg.data:
-            case 'NEXT':
-                self.__higher_frequency()
-                return
-            case 'PREV':
-                self.__lower_frequency()
-                return
-            case _:
-                return
+    #def __frequency_command_callback(self, msg: String) -> None:
+    #    match msg.data:
+    #        case 'NEXT':
+    #            self.__higher_frequency()
+    #            return
+    #        case 'PREV':
+    #            self.__lower_frequency()
+    #            return
+    #        case _:
+    #            return
 
     def __frequency_received_callback(self, msg: Float32) -> None:
         self.get_logger().info('Received frequency: %f' % msg.data)

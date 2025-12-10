@@ -22,7 +22,12 @@ setup(
     extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [
-            'start_multimedia = multimedia_python.start_multimedia:main',
+            'start_all = multimedia_python.start_multimedia:main',
+            'radio_node = multimedia_python.radio_node:main',
+            'volume_controller_node = multimedia_python.volume_controller_node:main',
+            'frequency_controller_node = multimedia_python.freq_controller_node:main',
+            'ir_receiver_node = multimedia_python.ir_receiver_node:main',
+            'lcd_display_node = multimedia_python.lcd_display_node:main',
         ],
     },
 )

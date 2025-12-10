@@ -12,13 +12,13 @@ class LCDDisplayNode(Node):
             String,
             '/display/first_string',
             self.__set_first_line_callback,
-            qos_profile_sensor_data,
+            qos_profile=qos_profile_sensor_data,
         )
         self.second_line_subscriber_ = self.create_subscription(
             String,
             '/display/second_string',
             self.__set_second_line_callback,
-            qos_profile_sensor_data
+            qos_profile=qos_profile_sensor_data
         )
 
         self._lcd = LCD(i2c_addr=39)

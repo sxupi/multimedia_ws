@@ -11,14 +11,14 @@ def main(args=None):
 
     volume_controller_node = VolumeControllerNode()
     frequency_controller_node = FrequencyControllerNode()
-    ir_receiver_node = IRReceiverNode()
     lcd_display_node = LCDDisplayNode()
+    ir_receiver_node = IRReceiverNode()
 
     executor = MultiThreadedExecutor()
     executor.add_node(volume_controller_node)
     executor.add_node(frequency_controller_node)
-    executor.add_node(ir_receiver_node)
     executor.add_node(lcd_display_node)
+    executor.add_node(ir_receiver_node)
 
     print('Starting to spin the executor now')
     try:
@@ -28,8 +28,8 @@ def main(args=None):
     finally:
         volume_controller_node.destroy_node()
         frequency_controller_node.destroy_node()
-        ir_receiver_node.destroy_node()
         lcd_display_node.destroy_node()
+        ir_receiver_node.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ from std_msgs.msg import String
 
 from .external.LCD import LCD
 
+
 class LCDDisplayNode(Node):
 
     def __init__(self):
@@ -30,7 +31,7 @@ class LCDDisplayNode(Node):
         self.get_logger().info(f'Received first line {msg.data}')
         self._first_line = msg.data
         self.__refresh_display()
-    
+
     def __second_line_callback(self, msg: String) -> None:
         self.get_logger().info(f'Received second line {msg.data}')
         self._second_line = msg.data
@@ -42,19 +43,19 @@ class LCDDisplayNode(Node):
         self._lcd.message(self._second_line, 2)
 
 
-
 def main(args=None):
-    rclpy.init(args=args)
-
-    node = LCDDisplayNode()
-
-    print('Starting to spin the LCD display node now')
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
+    print('Currently not used on the Raspberry Pi anymore')
+#    rclpy.init(args=args)
+#
+#    node = LCDDisplayNode()
+#
+#    print('Starting to spin the LCD display node now')
+#    try:
+#        rclpy.spin(node)
+#    except KeyboardInterrupt:
+#        pass
+#    finally:
+#        node.destroy_node()
 
 
 if __name__ == '__main__':

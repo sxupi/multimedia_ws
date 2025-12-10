@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # SI4703 Python Library
-# (c) 2016 Ryan Edwards <ryan.edwards@gmail.com> 
+# (c) 2016 Ryan Edwards <ryan.edwards@gmail.com>
 # Ported from my Arduino library which was modified from Aaron Weiss @ SparkFun's original library
 #
 # Release Notes:
@@ -10,115 +10,125 @@
 # To-do:
 # Implement the remaining RDS data groups
 # Add more try/execpt handling to catch errors
-# 
+#
 
 import smbus
 import time
 import RPi.GPIO as GPIO
+import os
 
 class si4703Radio():
 
     # Define the register names
-    SI4703_DEVICEID =       0x00
-    SI4703_CHIPID =         0x01
-    SI4703_POWERCFG =       0x02
-    SI4703_CHANNEL =        0x03
-    SI4703_SYSCONFIG1 =     0x04
-    SI4703_SYSCONFIG2 =     0x05
-    SI4703_SYSCONFIG3 =     0x06
-    SI4703_TEST1 =          0x07
-    SI4703_TEST2 =          0x08 #Reserved - if modified should be read before writing
-    SI4703_BOOTCONFIG =     0x09 #Reserved - if modified should be read before writing
-    SI4703_STATUSRSSI =     0x0A
-    SI4703_READCHAN =       0x0B
-    SI4703_RDSA =           0x0C
-    SI4703_RDSB =           0x0D
-    SI4703_RDSC =           0x0E
-    SI4703_RDSD =           0x0F
+    SI4703_DEVICEID = 0x00
+    SI4703_CHIPID = 0x01
+    SI4703_POWERCFG = 0x02
+    SI4703_CHANNEL = 0x03
+    SI4703_SYSCONFIG1 = 0x04
+    SI4703_SYSCONFIG2 = 0x05
+    SI4703_SYSCONFIG3 = 0x06
+    SI4703_TEST1 = 0x07
+    SI4703_TEST2 = 0x08  # Reserved - if modified should be read before writing
+    SI4703_BOOTCONFIG = 0x09  # Reserved - if modified should be read before writing
+    SI4703_STATUSRSSI = 0x0A
+    SI4703_READCHAN = 0x0B
+    SI4703_RDSA = 0x0C
+    SI4703_RDSB = 0x0D
+    SI4703_RDSC = 0x0E
+    SI4703_RDSD = 0x0F
 
     # Register 0x02 - POWERCFG
-    SI4703_SMUTE =          15
-    SI4703_DMUTE =          14
-    SI4703_SKMODE =         10
-    SI4703_SEEKUP =         9
-    SI4703_SEEK =           8
-    SI4703_ENABLE =         0
+    SI4703_SMUTE = 15
+    SI4703_DMUTE = 14
+    SI4703_SKMODE = 10
+    SI4703_SEEKUP = 9
+    SI4703_SEEK = 8
+    SI4703_ENABLE = 0
 
     # Register 0x03 - CHANNEL
-    SI4703_TUNE =           15
+    SI4703_TUNE = 15
 
     # Register 0x04 - SYSCONFIG1
-    SI4703_RDSIEN =         15
-    SI4703_STCIEN =         14
-    SI4703_RDS =            12
-    SI4703_DE =             11
-    SI4703_BLNDADJ =        6
-    SI4703_GPIO3 =          4
-    SI4703_GPIO2 =          2
-    SI4703_GPIO1 =          0
+    SI4703_RDSIEN = 15
+    SI4703_STCIEN = 14
+    SI4703_RDS = 12
+    SI4703_DE = 11
+    SI4703_BLNDADJ = 6
+    SI4703_GPIO3 = 4
+    SI4703_GPIO2 = 2
+    SI4703_GPIO1 = 0
 
     # Register 0x05 - SYSCONFIG2
-    SI4703_SEEKTH =         8
-    SI4703_SPACE1 =         5
-    SI4703_SPACE0 =         4
-    SI4703_VOLUME_MASK =    0x000F
+    SI4703_SEEKTH = 8
+    SI4703_SPACE1 = 5
+    SI4703_SPACE0 = 4
+    SI4703_VOLUME_MASK = 0x000F
 
     # Register 0x06 - SYSCONFIG3
-    SI4703_SKSNR =          4
-    SI4703_SKCNT =          0
+    SI4703_SKSNR = 4
+    SI4703_SKCNT = 0
 
     # Register 0x07 - TEST1
-    SI4703_AHIZEN =         14
-    SI4703_XOSCEN =         15
+    SI4703_AHIZEN = 14
+    SI4703_XOSCEN = 15
 
     # Register 0x0A - STATUSRSSI
-    SI4703_RDSR =           15
-    SI4703_STC =            14
-    SI4703_SFBL =           13
-    SI4703_AFCRL =          12
-    SI4703_RDSS =           11
-    SI4703_STEREO =         8
+    SI4703_RDSR = 15
+    SI4703_STC = 14
+    SI4703_SFBL = 13
+    SI4703_AFCRL = 12
+    SI4703_RDSS = 11
+    SI4703_STEREO = 8
 
     # Register 0x0B - READCHAN
-    SI4703_READCHAN_MASK =  0x03FF    
+    SI4703_READCHAN_MASK = 0x03FF
 
     # RDS Variables
     # Register RDSB
     SI4703_GROUPTYPE_OFFST = 11
-    SI4703_TP_OFFST =       10
-    SI4703_TA_OFFST =       4
-    SI4703_MS_OFFST =       3
+    SI4703_TP_OFFST = 10
+    SI4703_TA_OFFST = 4
+    SI4703_MS_OFFST = 3
     SI4703_TYPE0_INDEX_MASK = 0x0003
     SI4703_TYPE2_INDEX_MASK = 0x000F
 
-    SI4703_SEEK_DOWN =      0
-    SI4703_SEEK_UP =        1
-    
-    
-    def __init__(self, i2cAddr, resetPin, irqPIN = -1):        
-        
+    SI4703_SEEK_DOWN = 0
+    SI4703_SEEK_UP = 1
+
+    def __init__(self, i2cAddr, resetPin, irqPIN=-1):
+
         GPIO.setwarnings(False)
         self.GPIO = GPIO
-        
+
         self.i2CAddr = i2cAddr
         self.resetPin = resetPin
         self.irqPIN = irqPIN
-        
-        #setup the GPIO variables
+
+        # setup the GPIO variables
         self.i2c = smbus.SMBus(1)
         self.GPIO.setmode(GPIO.BCM)
         self.GPIO.setup(self.resetPin, GPIO.OUT)
         self.GPIO.setup(0, GPIO.OUT)
+        GPIO.output(0, GPIO.LOW)
+
+
+        time.sleep(.1)
+        GPIO.output(23, GPIO.LOW)
+        time.sleep(.1)
+        GPIO.output(23, GPIO.HIGH)
+        time.sleep(.1)
+
+        os.system("sudo i2cdetect -y 1")
         self.GPIO.setwarnings(False)
-        
+
         # Global shadow copy of the si4703 registers
         self.si4703_registers = [0] * 16
         self.si4703_rds_ps = [0] * 8
         self.si4703_rds_rt = [0] * 64
-      
+
         if (self.irqPIN == -1): self.si4703UseIRQ = False
         else: self.si4703UseIRQ = True
-        
+
     def si4703SeekUp(self):
         self.si4703Seek(self.SI4703_SEEK_UP)
         

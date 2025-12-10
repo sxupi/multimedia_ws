@@ -23,7 +23,7 @@ class IRReceiverNode(Node):
             '/ir_receiver/command',
             10
         )
-        self.__ir_module = IRModule.IRRemote()
+        self.__ir_module = IRModule.IRRemote(self.__ir_received)
 
         # Needs to be set
         GPIO.setwarnings(False)
@@ -33,9 +33,9 @@ class IRReceiverNode(Node):
 
         # No need to print out high and low durations
         self.__ir_module.set_verbose(False)
-        self.__ir_module.set_callback(callback=self.__ir_received)
 
     def __ir_received(self, code) -> None:
         msg = String()
         msg.data = self.COMMAND_MAPPINGS[code]
         self.__command_publisher_.publish(msg)
+        self.get_logger().info('Publishing received command: {0} ({1})'.format(msg.data, code))

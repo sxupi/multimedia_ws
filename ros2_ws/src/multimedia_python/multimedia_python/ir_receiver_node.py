@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from rclpy.node import Node
 from std_msgs.msg import String
 import RPi.GPIO as GPIO
@@ -61,6 +60,7 @@ class IRReceiverNode(Node):
         """
         try:
             self._code_queue.put_nowait(code)
+            print(code)
         except queue.Full:
             # Option A: drop the new code
             # self.get_logger() is NOT safe here (external thread),
@@ -88,33 +88,16 @@ class IRReceiverNode(Node):
             except queue.Empty:
                 break
 
-            # Format for logging
-            try:
-                code_hex = hex(code) if isinstance(code, int) and code >= 0 else str(code)
-            except Exception:
-                code_hex = str(code)
-
-            self.get_logger().debug(f"Processing IR code from queue: {code} ({code_hex})")
-
-            # Ignore invalid / no-op codes
-            if not isinstance(code, int) or code <= 0:
-                self.get_logger().debug("Ignoring invalid / repeat / no-op IR code.")
-                continue
+            self.get_logger().debug(f"Processing IR code from queue: {code}")
 
             command = self.COMMAND_MAPPINGS.get(code)
-            if command is None:
-                self.get_logger().warn(f"Unknown IR code: {code} ({code_hex})")
-                continue
 
             msg = String()
             msg.data = command
             self._command_pub.publish(msg)
             self.get_logger().info(
-                f"Publishing received command: {msg.data} ({code_hex})"
+                f"Publishing received command: {msg.data} ({code})"
             )
-
-        if processed_any:
-            self.get_logger().debug("Finished processing IR codes this cycle.")
 
     # ---------- CLEANUP ----------
 

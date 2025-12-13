@@ -1,0 +1,224 @@
+# multimedia_python/radio_node.py
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Int32, Float32, String
+
+from enum import Enum
+
+from .music_players.base_music_player import BaseMusicPlayer
+from .music_players.radio_player import RadioPlayer
+from .music_players.spotify_player import SpotifyPlayer
+
+
+class MusicPlayerEnum(Enum):
+    RADIO = 'Radio'
+    SPOTIFY = 'Spotify'
+
+
+class MusicControllerNode(Node):
+
+    def __init__(self):
+        super().__init__('music_controller')
+
+        self.volume_subscriber_ = self.create_subscription(
+            Float32,
+            '/current/volume_float32',
+            self.__volume_change_callback,
+            10
+        )
+        self.frequency_subscriber_ = self.create_subscription(
+            Int32,
+            '/current/frequency_int32',
+            self.__frequency_change_callback,
+            10
+        )
+        self.command_subscriber_ = self.create_subscription(
+            String,
+            '/remote/command_string',
+            self.__incoming_command_callback,
+            10
+        )
+
+        self.frequency_publisher_ = self.create_publisher(
+            Int32,
+            '/current/frequency_int32',
+            10,
+        )
+        self.first_line_publisher_ = self.create_publisher(
+            String,
+            '/display/header_string',
+            10
+        )
+        self.second_line_publisher_ = self.create_publisher(
+            String,
+            '/display/text_string',
+            10
+        )
+
+        # TODO: Implement two timers for updating the header and text strings
+
+        self._curr_freq = 900
+        self._curr_volume = 0.0
+
+        # Initailize both players (without playing anything)
+        self._radio_player: RadioPlayer = RadioPlayer()
+        self._spotify_player: SpotifyPlayer = SpotifyPlayer()
+
+        # Set the current player
+        self._curr_player: BaseMusicPlayer = self._radio_player
+        self._curr_player_tag: MusicPlayerEnum = MusicPlayerEnum.RADIO
+
+    def __volume_change_callback(self, msg: Float32) -> None:
+        new_volume = -1
+        try:
+            new_volume = self._curr_player.set_volume(msg.data)
+        except OSError as ose:
+            self.get_logger().error(f'I2C error setting volume: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(f'Something went wrong: {e}')
+            return
+
+        self.get_logger().info(f'Set volume to {new_volume}')
+
+    def __frequency_change_callback(self, msg: Int32) -> None:
+        if self._curr_freq != msg.data:
+            frequency = -1
+            try:
+                frequency = self._curr_player.set_frequency(msg.data)
+            except OSError as ose:
+                self.get_logger().error(f'I2C error setting frequency: {ose}')
+                return
+            except Exception as e:
+                self.get_logger().error(f'Something went wrong: {e}')
+                return
+
+            if frequency == -1:
+                self.get_logger().info('Did not set frequency (probably Spotify player active)')
+            else:
+                self.get_logger().info(f'Set frequency to {frequency}')
+        else:
+            self.get_logger().info(f'Frequency stayed the same {msg.data}')
+
+    def __incoming_command_callback(self, msg: String) -> None:
+        data = msg.data
+        match msg.data:
+            case 'PLAY_STOP':
+                self._curr_player.toggle_play_stop()
+                return
+            case 'SWITCH':
+                self.__switch_handle()
+                return
+            case 'NEXT':
+                self._handle_change(True)
+                return
+            case 'PREV':
+                self._handle_change(False)
+                return
+
+    def __switch_handle(self) -> None:
+        self._curr_player.stop()
+
+        if self._curr_player_tag == MusicPlayerEnum.RADIO:
+            self._curr_player_tag = MusicPlayerEnum.SPOTIFY
+            self._curr_player = self._spotify_player
+        else:
+            self._curr_player_tag = MusicPlayerEnum.RADIO
+            self._curr_player = self._radio_player
+
+        try:
+            self._curr_player.set_volume(self._curr_volume)
+            self._curr_player.set_frequency(self._curr_freq)
+        except OSError as ose:
+            self.get_logger().error(f'I2C error setting volume: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(f'Something went wrong: {e}')
+            return
+
+        self._curr_player.play()
+
+    def _handle_change(self, is_next: bool):
+        frequency = -1
+        try:
+            self._radio.si4703SeekDown()
+            frequency = self._curr_player.play_next(
+            ) if is_next else self._curr_player.play_previous()
+        except OSError as ose:
+            self.get_logger().error(f'I2C error during seek down: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(f'Something went wrong: {e}')
+            return
+
+        if frequency != -1:
+            self._curr_freq = frequency
+            msg: Int32 = Int32()
+            msg.data = self._curr_freq
+            self.frequency_publisher_.publish(msg)
+            self.get_logger().info(
+                f'New channel at {self._curr_freq} set and published')
+        else:
+            self.get_logger().info('Next/previous song set')
+
+    # TODO: Remove this method
+
+    def __switch_channels(self, publish_freq: bool) -> None:
+        if publish_freq:
+            freq_msg = Int32()
+            freq_msg.data = self._curr_freq
+            self.frequency_publisher_.publish(freq_msg)
+            self.get_logger().info(f'Published new frequency {freq_msg.data}')
+
+        # RDS handling
+        try:
+            self._radio.si4703ClearRDSBuffers()
+            self._radio.si4703ProcessRDS()
+        except OSError as e:
+            self.get_logger().error(f'I2C/RDS error: {e}')
+            return
+
+        program_service_text = self._radio.si4703GetProgramService()
+        first_line_msg = String()
+
+        if not program_service_text:
+            first_line_msg.data = 'Radio - No station'
+        else:
+            first_line_msg.data = 'Radio - ' + program_service_text.strip()
+
+        self.first_line_publisher_.publish(first_line_msg)
+        self.get_logger().info(
+            f'Published first line string: {first_line_msg.data}'
+        )
+
+        radio_text = self._radio.si4703GetProgramService()
+        second_line_msg = String()
+
+        if not radio_text:
+            second_line_msg.data = 'No text'
+        else:
+            second_line_msg.data = radio_text.strip()
+
+        self.second_line_publisher_.publish(second_line_msg)
+        self.get_logger().info(
+            f'Published second line string: {second_line_msg.data}'
+        )
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = MusicControllerNode()
+    node.get_logger().info('Starting to spin the music controller node now')
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+
+
+if __name__ == '__main__':
+    main()

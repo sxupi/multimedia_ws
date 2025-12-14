@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ...external import spotipy
+
 """ Shows a user's playlists. This needs to be authenticated via OAuth. """
 
 __all__ = ["CLIENT_CREDS_ENV_VARS", "prompt_for_user_token"]
@@ -12,7 +14,6 @@ from types import TracebackType
 import requests
 import urllib3
 
-import spotipy
 
 logger = logging.getLogger(__name__)
 

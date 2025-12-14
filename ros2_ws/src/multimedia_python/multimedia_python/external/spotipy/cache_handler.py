@@ -14,7 +14,7 @@ import os
 
 from redis import RedisError
 
-from spotipy.util import CLIENT_CREDS_ENV_VARS
+from .util import CLIENT_CREDS_ENV_VARS
 
 logger = logging.getLogger(__name__)
 

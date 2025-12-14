@@ -10,8 +10,8 @@ from collections import defaultdict
 
 import requests
 
-from spotipy.exceptions import SpotifyException
-from spotipy.util import REQUESTS_SESSION, Retry
+from .exceptions import SpotifyException
+from .util import REQUESTS_SESSION, Retry
 
 logger = logging.getLogger(__name__)
 

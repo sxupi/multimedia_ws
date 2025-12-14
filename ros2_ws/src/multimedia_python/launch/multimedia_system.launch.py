@@ -4,11 +4,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     return LaunchDescription([
-        #Node(
-        #    package='multimedia_python',
-        #    executable='radio_node',
-        #    name='radio_node'
-        #),
+        Node(
+            package='multimedia_python',
+            executable='music_controller_node',
+            name='music_controller_node'
+        ),
         Node(
             package='multimedia_python',
             executable='volume_controller_node',
@@ -31,7 +31,7 @@ def generate_launch_description():
         ),
         Node(
             package='multimedia_python',
-            executable='web_controller',
-            name='web_controller'
+            executable='web_controller_node',
+            name='web_controller_node'
         ),
     ])

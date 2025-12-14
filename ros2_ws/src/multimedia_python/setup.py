@@ -28,7 +28,8 @@ setup(
             'frequency_controller_node = multimedia_python.freq_controller_node:main',
             'ir_receiver_node = multimedia_python.ir_receiver_node:main',
             'display_node = multimedia_python.display_node:main',
-            'web_controller = multimedia_python.web_controller:main'
+            'web_controller_node = multimedia_python.web_controller_node:main',
+            'music_controller_node = multimedia_python.music_controller_node:main'
         ],
     },
 )

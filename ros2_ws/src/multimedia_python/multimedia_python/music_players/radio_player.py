@@ -47,7 +47,7 @@ class RadioPlayer(BaseMusicPlayer):
     def set_volume(self, volume: float) -> int:
         self._is_playing = volume > 0
         converted_volume = self.__convert_volume(volume)
-        self._radio.si4703SetVolume(self.__convert_volume(volume))
+        self._radio.si4703SetVolume(converted_volume)
         return converted_volume
 
     def set_frequency(self, frequency: int) -> int:

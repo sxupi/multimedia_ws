@@ -1,5 +1,3 @@
-# multimedia_python/radio_node.py
-
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32, Float32, String
@@ -153,11 +151,9 @@ class MusicControllerNode(Node):
         self._curr_player.play()
 
     def __handle_change(self, is_next: bool):
-        frequency = -1
+        freq = -1
         try:
-            self._radio.si4703SeekDown()
-            frequency = self._curr_player.play_next(
-            ) if is_next else self._curr_player.play_previous()
+            freq = self._curr_player.play_next() if is_next else self._curr_player.play_previous()
         except OSError as ose:
             self.get_logger().error(f'I2C error during seek down: {ose}')
             return
@@ -165,8 +161,8 @@ class MusicControllerNode(Node):
             self.get_logger().error(f'Something went wrong: {e}')
             return
 
-        if frequency != -1:
-            self._curr_freq = frequency
+        if freq != -1:
+            self._curr_freq = freq
             msg: Int32 = Int32()
             msg.data = self._curr_freq
             self._frequency_publisher_.publish(msg)

@@ -25,13 +25,16 @@ class RadioPlayer(BaseMusicPlayer):
             self.get_logger().error(f'I2C error during radio init: {e}')
 
     def play(self) -> None:
-        pass
+        self.set_volume(0.25)
 
     def stop(self) -> None:
-        pass
+        self.set_volume(0)
 
     def toggle_play_stop(self) -> None:
-        pass
+        if self._is_playing:
+            self.stop()
+        else:
+            self.play()
 
     def play_next(self) -> int:
         self._radio.si4703SeekUp()
@@ -42,6 +45,7 @@ class RadioPlayer(BaseMusicPlayer):
         return self._radio.si4703GetChannel()
 
     def set_volume(self, volume: float) -> int:
+        self._is_playing = volume > 0
         converted_volume = self.__convert_volume(volume)
         self._radio.si4703SetVolume(self.__convert_volume(volume))
         return converted_volume
@@ -49,3 +53,13 @@ class RadioPlayer(BaseMusicPlayer):
     def set_frequency(self, frequency: int) -> int:
         self._radio.si4703SetChannel(frequency)
         return frequency
+    
+    def get_header_text(self) -> str:
+        is_playing_text: str = 'Playing' if self._is_playing else 'Stopped'
+        return f'Radio - {is_playing_text}'
+
+    def get_info_text(self) -> str:
+        self._radio.si4703ClearRDSBuffers()
+        self._radio.si4703ProcessRDS()
+        radio_text = self._radio.si4703GetProgramService()
+        return radio_text if radio_text else 'No text'

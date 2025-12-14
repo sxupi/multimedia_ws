@@ -21,43 +21,42 @@ class MusicControllerNode(Node):
     def __init__(self):
         super().__init__('music_controller')
 
-        self.volume_subscriber_ = self.create_subscription(
+        self._volume_subscriber_ = self.create_subscription(
             Float32,
             '/current/volume_float32',
             self.__volume_change_callback,
             10
         )
-        self.frequency_subscriber_ = self.create_subscription(
+        self._frequency_subscriber_ = self.create_subscription(
             Int32,
             '/current/frequency_int32',
             self.__frequency_change_callback,
             10
         )
-        self.command_subscriber_ = self.create_subscription(
+        self._command_subscriber_ = self.create_subscription(
             String,
             '/remote/command_string',
             self.__incoming_command_callback,
             10
         )
 
-        self.frequency_publisher_ = self.create_publisher(
+        self._frequency_publisher_ = self.create_publisher(
             Int32,
             '/current/frequency_int32',
             10,
         )
-        self.first_line_publisher_ = self.create_publisher(
+        self._header_publisher_ = self.create_publisher(
             String,
             '/display/header_string',
             10
         )
-        self.second_line_publisher_ = self.create_publisher(
+        self._info_publisher_ = self.create_publisher(
             String,
             '/display/text_string',
             10
         )
 
-        # TODO: Implement two timers for updating the header and text strings
-
+        # Current information
         self._curr_freq = 900
         self._curr_volume = 0.0
 
@@ -68,6 +67,9 @@ class MusicControllerNode(Node):
         # Set the current player
         self._curr_player: BaseMusicPlayer = self._radio_player
         self._curr_player_tag: MusicPlayerEnum = MusicPlayerEnum.RADIO
+
+        self._header_timer = self.create_timer(0.02, self.__refresh_header)
+        self._info_timer = self.create_timer(0.02, self.__refresh_info_text)
 
     def __volume_change_callback(self, msg: Float32) -> None:
         new_volume = -1
@@ -105,19 +107,30 @@ class MusicControllerNode(Node):
         data = msg.data
         match msg.data:
             case 'PLAY_STOP':
-                self._curr_player.toggle_play_stop()
+                self._handle_play_stop()
                 return
             case 'SWITCH':
-                self.__switch_handle()
+                self.__handle_switch()
                 return
             case 'NEXT':
-                self._handle_change(True)
+                self.__handle_change(True)
                 return
             case 'PREV':
-                self._handle_change(False)
+                self.__handle_change(False)
                 return
 
-    def __switch_handle(self) -> None:
+    def _handle_play_stop(self) -> None:
+        try:
+            self._curr_player.toggle_play_stop()
+        except OSError as ose:
+            self.get_logger().error(f'I2C error toggling play/stop: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(
+                f'Something went wrong toggling play/stop: {e}')
+            return
+
+    def __handle_switch(self) -> None:
         self._curr_player.stop()
 
         if self._curr_player_tag == MusicPlayerEnum.RADIO:
@@ -139,7 +152,7 @@ class MusicControllerNode(Node):
 
         self._curr_player.play()
 
-    def _handle_change(self, is_next: bool):
+    def __handle_change(self, is_next: bool):
         frequency = -1
         try:
             self._radio.si4703SeekDown()
@@ -156,54 +169,33 @@ class MusicControllerNode(Node):
             self._curr_freq = frequency
             msg: Int32 = Int32()
             msg.data = self._curr_freq
-            self.frequency_publisher_.publish(msg)
+            self._frequency_publisher_.publish(msg)
             self.get_logger().info(
                 f'New channel at {self._curr_freq} set and published')
         else:
             self.get_logger().info('Next/previous song set')
 
-    # TODO: Remove this method
+    def __refresh_header(self):
+        msg: String = String()
+        msg.data = self._curr_player.get_header_text()
+        self._header_publisher_.publish(msg)
 
-    def __switch_channels(self, publish_freq: bool) -> None:
-        if publish_freq:
-            freq_msg = Int32()
-            freq_msg.data = self._curr_freq
-            self.frequency_publisher_.publish(freq_msg)
-            self.get_logger().info(f'Published new frequency {freq_msg.data}')
-
-        # RDS handling
+    def __refresh_info_text(self):
+        info_text: str = ''
         try:
-            self._radio.si4703ClearRDSBuffers()
-            self._radio.si4703ProcessRDS()
-        except OSError as e:
-            self.get_logger().error(f'I2C/RDS error: {e}')
+            info_text = self._curr_player.get_info_text()
+        except OSError as ose:
+            self.get_logger().error(
+                f'I2C error during getting info text: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(
+                f'Something went wrong during getting info text: {e}')
             return
 
-        program_service_text = self._radio.si4703GetProgramService()
-        first_line_msg = String()
-
-        if not program_service_text:
-            first_line_msg.data = 'Radio - No station'
-        else:
-            first_line_msg.data = 'Radio - ' + program_service_text.strip()
-
-        self.first_line_publisher_.publish(first_line_msg)
-        self.get_logger().info(
-            f'Published first line string: {first_line_msg.data}'
-        )
-
-        radio_text = self._radio.si4703GetProgramService()
-        second_line_msg = String()
-
-        if not radio_text:
-            second_line_msg.data = 'No text'
-        else:
-            second_line_msg.data = radio_text.strip()
-
-        self.second_line_publisher_.publish(second_line_msg)
-        self.get_logger().info(
-            f'Published second line string: {second_line_msg.data}'
-        )
+        msg: String = String()
+        msg.data = info_text if info_text else 'No current info'
+        self._info_publisher_.publish(msg)
 
 
 def main(args=None):

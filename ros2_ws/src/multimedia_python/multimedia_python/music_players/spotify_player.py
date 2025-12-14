@@ -1,7 +1,7 @@
 from .base_music_player import BaseMusicPlayer
 
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from ..external import spotipy
+from ..external.spotipy.oauth2 import SpotifyOAuth
 
 
 class SpotifyPlayer(BaseMusicPlayer):

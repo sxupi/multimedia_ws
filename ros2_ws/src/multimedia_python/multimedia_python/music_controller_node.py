@@ -22,19 +22,19 @@ class MusicControllerNode(Node):
         self._volume_subscriber_ = self.create_subscription(
             Float32,
             '/current/volume_float32',
-            self.__volume_change_callback,
+            self._volume_change_callback,
             10
         )
         self._frequency_subscriber_ = self.create_subscription(
             Int32,
             '/current/frequency_int32',
-            self.__frequency_change_callback,
+            self._frequency_change_callback,
             10
         )
         self._command_subscriber_ = self.create_subscription(
             String,
             '/remote/command_string',
-            self.__incoming_command_callback,
+            self._incoming_command_callback,
             10
         )
 
@@ -66,11 +66,11 @@ class MusicControllerNode(Node):
         self._curr_player: BaseMusicPlayer = self._radio_player
         self._curr_player_tag: MusicPlayerEnum = MusicPlayerEnum.RADIO
 
-        self._header_timer = self.create_timer(1.0, self.__refresh_header)
-        self._info_timer = self.create_timer(0.5, self.__refresh_info_text)
+        self._header_timer = self.create_timer(1.0, self._refresh_header)
+        self._info_timer = self.create_timer(0.5, self._refresh_info_text)
 
-    def __volume_change_callback(self, msg: Float32) -> None:
-        new_volume = -1
+    def _volume_change_callback(self, msg: Float32) -> None:
+        new_volume: float = -1.0
         try:
             new_volume = self._curr_player.set_volume(msg.data)
         except OSError as ose:
@@ -82,7 +82,7 @@ class MusicControllerNode(Node):
         self._curr_volume = new_volume
         self.get_logger().info(f'Set volume to {new_volume}')
 
-    def __frequency_change_callback(self, msg: Int32) -> None:
+    def _frequency_change_callback(self, msg: Int32) -> None:
         if self._curr_freq == msg.data:
             return
 
@@ -105,19 +105,23 @@ class MusicControllerNode(Node):
             self._curr_freq = tuned
             self.get_logger().info(f'Set frequency to {tuned}')
 
-    def __incoming_command_callback(self, msg: String) -> None:
+    def _incoming_command_callback(self, msg: String) -> None:
         match msg.data:
             case 'PLAY_STOP':
                 self._handle_play_stop()
                 return
             case 'SWITCH':
-                self.__handle_switch()
+                self._handle_switch()
                 return
             case 'NEXT':
-                self.__handle_change(True)
+                self._handle_change(True)
                 return
             case 'PREV':
-                self.__handle_change(False)
+                self._handle_change(False)
+                return
+            case _:
+                self.get_logger().info(
+                    f'Command {msg.data} is unknown or not handled')
                 return
 
     def _handle_play_stop(self) -> None:
@@ -132,11 +136,11 @@ class MusicControllerNode(Node):
                 f'Something went wrong toggling play/stop: {e}')
             return
 
-    def __handle_switch(self) -> None:
+    def _handle_switch(self) -> None:
         try:
             self._curr_player.stop()
         except OSError as ose:
-            self.get_logger().error(f'Device error setting volume: {ose}')
+            self.get_logger().error(f'Device error during stopping: {ose}')
             return
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
@@ -152,18 +156,19 @@ class MusicControllerNode(Node):
         try:
             self._curr_player.play(self._curr_freq, self._curr_volume)
         except OSError as ose:
-            self.get_logger().error(f'Device error setting volume: {ose}')
+            self.get_logger().error(f'Device error during playing: {ose}')
             return
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
             return
 
-    def __handle_change(self, is_next: bool):
+    def _handle_change(self, is_next: bool):
         freq = -1
         try:
             freq = self._curr_player.play_next() if is_next else self._curr_player.play_previous()
         except OSError as ose:
-            self.get_logger().error(f'Device error during seek down: {ose}')
+            self.get_logger().error(
+                f'Device error during change of song/station: {ose}')
             return
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
@@ -179,12 +184,12 @@ class MusicControllerNode(Node):
         else:
             self.get_logger().info('Next/previous song set')
 
-    def __refresh_header(self):
+    def _refresh_header(self):
         msg: String = String()
         msg.data = self._curr_player.get_header_text()
         self._header_publisher_.publish(msg)
 
-    def __refresh_info_text(self):
+    def _refresh_info_text(self):
         info_text: str = ''
         try:
             info_text = self._curr_player.get_info_text()
@@ -214,6 +219,7 @@ def main(args=None):
         pass
     finally:
         node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':

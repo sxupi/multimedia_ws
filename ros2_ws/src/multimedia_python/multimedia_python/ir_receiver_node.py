@@ -23,27 +23,27 @@ class IRReceiverNode(Node):
 
     def __init__(self, bcm_num=17):
         super().__init__('ir_receiver')
-        self.__command_publisher_ = self.create_publisher(
+        self._command_publisher_ = self.create_publisher(
             String,
             '/remote/command_string',
             10
         )
-        self.__ir_module = IRModule.IRRemote(self.__ir_received)
+        self._ir_module = IRModule.IRRemote(self._ir_received)
 
         # Needs to be set
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(bcm_num, GPIO.IN)
         GPIO.add_event_detect(bcm_num, GPIO.BOTH,
-                              callback=self.__ir_module.pWidth)
+                              callback=self._ir_module.pWidth)
 
         # No need to print out high and low durations
-        self.__ir_module.set_verbose(False)
+        self._ir_module.set_verbose(False)
 
         self._last_time = 0
         self._lock = threading.Lock()
 
-    def __ir_received(self, code) -> None:
+    def _ir_received(self, code) -> None:
         if code <= 0:
             return
 
@@ -59,7 +59,7 @@ class IRReceiverNode(Node):
         if converted_code is not None:
             msg = String()
             msg.data = converted_code
-            self.__command_publisher_.publish(msg)
+            self._command_publisher_.publish(msg)
             self.get_logger().info(
                 'Publishing received command: {0} ({1})'.format(msg.data, code))
 

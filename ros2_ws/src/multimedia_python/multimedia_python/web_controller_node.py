@@ -59,11 +59,11 @@ async def send_command(request: CommandRequest):
         if request.command == Command.SET_VOLUME:
             msg = Float32()
             msg.data = request.value / 100
-            ros_node.volume_publisher_.publish(msg.data)
+            ros_node._volume_publisher_.publish(msg.data)
         else:
             msg = String()
             msg.data = request.command.value
-            ros_node.command_publisher_.publish(msg)
+            ros_node._command_publisher_.publish(msg)
     else:
         print(
             f"[WARN] ROS node not ready, received: "
@@ -80,12 +80,12 @@ async def send_command(request: CommandRequest):
 class CommandApiNode(Node):
     def __init__(self):
         super().__init__("command_api_node")
-        self.command_publisher_ = self.create_publisher(
+        self._command_publisher_ = self.create_publisher(
             String,
             '/remote/command_string',
             10,
         )
-        self.volume_publisher_ = self.create_publisher(
+        self._volume_publisher_ = self.create_publisher(
             Float32,
             '/web_remote/volume_float32',
             10,

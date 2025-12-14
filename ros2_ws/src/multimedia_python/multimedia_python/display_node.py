@@ -12,40 +12,40 @@ class DisplayNode(Node):
         self.first_line_subscriber_ = self.create_subscription(
             String,
             '/display/header_string',
-            self.__header_callback,
+            self._header_callback,
             10
         )
         self.second_line_subscriber_ = self.create_subscription(
             String,
             '/display/text_string',
-            self.__text_callback,
+            self._text_callback,
             10
         )
         # To show that the display changes
         self.command_display_subscription = self.create_subscription(
             String,
             '/remote/command_string',
-            self.__text_callback,
+            self._text_callback,
             10
         )
 
         self._device = create_device()
         self._display = TwoLineDisplay(self._device)
 
-        self._timer = self.create_timer(0.02, self.__refresh_display)
+        self._timer = self.create_timer(0.02, self._refresh_display)
 
         self._display.display_header('Waiting...')
         self._display.display_text('To receive some text...')
 
-    def __header_callback(self, msg: String) -> None:
+    def _header_callback(self, msg: String) -> None:
         self.get_logger().info(f'Received first line {msg.data}')
         self._display.display_header(msg.data)
 
-    def __text_callback(self, msg: String) -> None:
+    def _text_callback(self, msg: String) -> None:
         self.get_logger().info(f'Received second line {msg.data}')
         self._display.display_text(msg.data)
 
-    def __refresh_display(self) -> None:
+    def _refresh_display(self) -> None:
         self._display.update()
 
 

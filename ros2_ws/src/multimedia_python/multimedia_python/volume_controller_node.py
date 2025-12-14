@@ -11,69 +11,69 @@ class VolumeControllerNode(Node):
 
     def __init__(self):
         super().__init__('volume_controller')
-        self.command_subscriber_ = self.create_subscription(
+        self._command_subscriber_ = self.create_subscription(
             String,
             '/remote/command_string',
-            self.__volume_command_callback,
+            self._volume_command_callback,
             10
         )
-        self.volume_pot_subscriber_ = self.create_subscription(
+        self._volume_pot_subscriber_ = self.create_subscription(
             Float32,
             '/potentiometer/volume_float32',
-            self.__volume_received_callback,
+            self._volume_received_callback,
             10
         )
-        self.volume_web_subscriber_ = self.create_subscription(
+        self._volume_web_subscriber_ = self.create_subscription(
             Float32,
             '/web_remote/volume_float32',
-            self.__volume_received_callback,
+            self._volume_received_callback,
             10
         )
-        self.volume_publisher_ = self.create_publisher(
+        self._volume_publisher_ = self.create_publisher(
             Float32,
             '/current/volume_float32',
             10
         )
-        self.__current_volume = 0
+        self._current_volume = 0
 
-    def __volume_command_callback(self, msg: String) -> None:
+    def _volume_command_callback(self, msg: String) -> None:
         match msg.data:
             case 'HIGHER_VOLUME':
-                self.__higher_volume()
+                self._higher_volume()
                 return
             case 'LOWER_VOLUME':
-                self.__lower_volume()
+                self._lower_volume()
                 return
             case _:
                 return
 
-    def __volume_received_callback(self, msg: Float32) -> None:
+    def _volume_received_callback(self, msg: Float32) -> None:
         self.get_logger().info('Received volume: %f' % msg.data)
         # No normalization is required here
-        self.__current_volume = round(msg.data, 2)
-        self.__publish_volume()
+        self._current_volume = round(msg.data, 2)
+        self._publish_volume()
 
-    def __publish_volume(self) -> None:
+    def _publish_volume(self) -> None:
         msg = Float32()
-        msg.data = self.__current_volume
-        self.volume_publisher_.publish(msg)
+        msg.data = self._current_volume
+        self._volume_publisher_.publish(msg)
 
         self.get_logger().info('Publishing current volume: %f' % msg.data)
 
     def get_volume(self) -> float:
-        return self.__current_volume
+        return self._current_volume
 
-    def __higher_volume(self) -> None:
-        self.__current_volume += self.COMMAND_VOLUME_CHANGE
-        if self.__current_volume > self.MAX_VOLUME:
-            self.__current_volume = self.MAX_VOLUME
-        self.__publish_volume()
+    def _higher_volume(self) -> None:
+        self._current_volume += self.COMMAND_VOLUME_CHANGE
+        if self._current_volume > self.MAX_VOLUME:
+            self._current_volume = self.MAX_VOLUME
+        self._publish_volume()
 
-    def __lower_volume(self) -> None:
-        self.__current_volume -= self.COMMAND_VOLUME_CHANGE
-        if self.__current_volume < self.MIN_VOLUME:
-            self.__current_volume = self.MIN_VOLUME
-        self.__publish_volume()
+    def _lower_volume(self) -> None:
+        self._current_volume -= self.COMMAND_VOLUME_CHANGE
+        if self._current_volume < self.MIN_VOLUME:
+            self._current_volume = self.MIN_VOLUME
+        self._publish_volume()
 
 
 def main(args=None):

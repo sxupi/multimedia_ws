@@ -1,4 +1,4 @@
-from ros2_ws.src.multimedia_python.multimedia_python.external.si470x import Si4703Radio
+from ..external.si470x import Si4703Radio
 
 from .base_music_player import BaseMusicPlayer
 

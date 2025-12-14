@@ -128,6 +128,7 @@ def main(args=None):
         node.get_logger().info("Shutting down (KeyboardInterrupt)")
     finally:
         node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":

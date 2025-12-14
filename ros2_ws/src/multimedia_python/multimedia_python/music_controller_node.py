@@ -66,43 +66,46 @@ class MusicControllerNode(Node):
         self._curr_player: BaseMusicPlayer = self._radio_player
         self._curr_player_tag: MusicPlayerEnum = MusicPlayerEnum.RADIO
 
-        self._header_timer = self.create_timer(0.02, self.__refresh_header)
-        self._info_timer = self.create_timer(0.02, self.__refresh_info_text)
+        self._header_timer = self.create_timer(1.0, self.__refresh_header)
+        self._info_timer = self.create_timer(0.5, self.__refresh_info_text)
 
     def __volume_change_callback(self, msg: Float32) -> None:
         new_volume = -1
         try:
             new_volume = self._curr_player.set_volume(msg.data)
         except OSError as ose:
-            self.get_logger().error(f'I2C error setting volume: {ose}')
+            self.get_logger().error(f'Device error setting volume: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(f'Something went wrong: {e}')
+            return
+        self._curr_volume = new_volume
+        self.get_logger().info(f'Set volume to {new_volume}')
+
+    def __frequency_change_callback(self, msg: Int32) -> None:
+        if self._curr_freq == msg.data:
+            return
+
+        # Always store the user's knob intent
+        self._curr_freq = int(msg.data)
+
+        try:
+            tuned = self._curr_player.set_frequency(self._curr_freq)
+        except OSError as ose:
+            self.get_logger().error(f'Device error setting frequency: {ose}')
             return
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
             return
 
-        self.get_logger().info(f'Set volume to {new_volume}')
-
-    def __frequency_change_callback(self, msg: Int32) -> None:
-        if self._curr_freq != msg.data:
-            frequency = -1
-            try:
-                frequency = self._curr_player.set_frequency(msg.data)
-            except OSError as ose:
-                self.get_logger().error(f'I2C error setting frequency: {ose}')
-                return
-            except Exception as e:
-                self.get_logger().error(f'Something went wrong: {e}')
-                return
-
-            if frequency == -1:
-                self.get_logger().info('Did not set frequency (probably Spotify player active)')
-            else:
-                self.get_logger().info(f'Set frequency to {frequency}')
+        if tuned == -1:
+            self.get_logger().debug('Active player ignored frequency')
         else:
-            self.get_logger().info(f'Frequency stayed the same {msg.data}')
+            # if RadioPlayer clamps/quantizes it, sync to actual tuned value
+            self._curr_freq = tuned
+            self.get_logger().info(f'Set frequency to {tuned}')
 
     def __incoming_command_callback(self, msg: String) -> None:
-        data = msg.data
         match msg.data:
             case 'PLAY_STOP':
                 self._handle_play_stop()
@@ -119,9 +122,10 @@ class MusicControllerNode(Node):
 
     def _handle_play_stop(self) -> None:
         try:
-            self._curr_player.toggle_play_stop()
+            self._curr_player.toggle_play_stop(
+                self._curr_freq, self._curr_volume)
         except OSError as ose:
-            self.get_logger().error(f'I2C error toggling play/stop: {ose}')
+            self.get_logger().error(f'Device error toggling play/stop: {ose}')
             return
         except Exception as e:
             self.get_logger().error(
@@ -129,7 +133,14 @@ class MusicControllerNode(Node):
             return
 
     def __handle_switch(self) -> None:
-        self._curr_player.stop()
+        try:
+            self._curr_player.stop()
+        except OSError as ose:
+            self.get_logger().error(f'Device error setting volume: {ose}')
+            return
+        except Exception as e:
+            self.get_logger().error(f'Something went wrong: {e}')
+            return
 
         if self._curr_player_tag == MusicPlayerEnum.RADIO:
             self._curr_player_tag = MusicPlayerEnum.SPOTIFY
@@ -139,23 +150,20 @@ class MusicControllerNode(Node):
             self._curr_player = self._radio_player
 
         try:
-            self._curr_player.set_volume(self._curr_volume)
-            self._curr_player.set_frequency(self._curr_freq)
+            self._curr_player.play(self._curr_freq, self._curr_volume)
         except OSError as ose:
-            self.get_logger().error(f'I2C error setting volume: {ose}')
+            self.get_logger().error(f'Device error setting volume: {ose}')
             return
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
             return
-
-        self._curr_player.play()
 
     def __handle_change(self, is_next: bool):
         freq = -1
         try:
             freq = self._curr_player.play_next() if is_next else self._curr_player.play_previous()
         except OSError as ose:
-            self.get_logger().error(f'I2C error during seek down: {ose}')
+            self.get_logger().error(f'Device error during seek down: {ose}')
             return
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
@@ -182,7 +190,7 @@ class MusicControllerNode(Node):
             info_text = self._curr_player.get_info_text()
         except OSError as ose:
             self.get_logger().error(
-                f'I2C error during getting info text: {ose}')
+                f'Device error during getting info text: {ose}')
             return
         except Exception as e:
             self.get_logger().error(

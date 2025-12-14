@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 from ros2_ws.src.multimedia_python.multimedia_python.external.si470x import Si4703Radio
 
 from .base_music_player import BaseMusicPlayer
@@ -18,23 +16,23 @@ class RadioPlayer(BaseMusicPlayer):
         self._max_volume = 15
 
         # Set initial state on hardware
-        try:
-            self._radio.si4703SetChannel(900)
-            self._radio.si4703SetVolume(self.__convert_volume(0.0))
-        except OSError as e:
-            self.get_logger().error(f'I2C error during radio init: {e}')
+        self.set_frequency(900)
+        self.set_volume(0.1)
 
-    def play(self) -> None:
-        self.set_volume(0.25)
+    def play(self, frequency: int | None = None, volume: float | None = None) -> None:
+        if frequency is not None:
+            self.set_frequency(frequency)
+        if volume is not None:
+            self.set_volume(volume)
 
     def stop(self) -> None:
-        self.set_volume(0)
+        self.set_volume(0.0)
 
-    def toggle_play_stop(self) -> None:
+    def toggle_play_stop(self, frequency: int | None = None, volume: float | None = None) -> None:
         if self._is_playing:
             self.stop()
         else:
-            self.play()
+            self.play(frequency, volume)
 
     def play_next(self) -> int:
         self._radio.si4703SeekUp()
@@ -44,16 +42,16 @@ class RadioPlayer(BaseMusicPlayer):
         self._radio.si4703SeekDown()
         return self._radio.si4703GetChannel()
 
-    def set_volume(self, volume: float) -> int:
-        self._is_playing = volume > 0
-        converted_volume = self.__convert_volume(volume)
+    def set_volume(self, volume: float) -> float:
+        self._is_playing = volume > 0.02
+        converted_volume = self._convert_volume(volume)
         self._radio.si4703SetVolume(converted_volume)
-        return converted_volume
+        return volume
 
     def set_frequency(self, frequency: int) -> int:
         self._radio.si4703SetChannel(frequency)
         return frequency
-    
+
     def get_header_text(self) -> str:
         is_playing_text: str = 'Playing' if self._is_playing else 'Stopped'
         return f'Radio - {is_playing_text}'

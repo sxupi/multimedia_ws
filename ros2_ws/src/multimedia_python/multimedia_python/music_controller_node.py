@@ -7,6 +7,8 @@ from enum import Enum
 from .music_players.base_music_player import BaseMusicPlayer
 from .music_players.radio_player import RadioPlayer
 from .music_players.spotify_player import SpotifyPlayer
+from .music_players.dummy_radio_player import DummyRadioPlayer
+from .music_players.dummy_spotify_player import DummySpotifyPlayer
 
 
 class MusicPlayerEnum(Enum):
@@ -64,6 +66,8 @@ class MusicControllerNode(Node):
             self._spotify_player: SpotifyPlayer = SpotifyPlayer()
         except Exception as e:
             self.get_logger().error(f'Something went wrong: {e}')
+            self._radio_player: DummyRadioPlayer = DummyRadioPlayer()
+            self._spotify_player: DummySpotifyPlayer = DummySpotifyPlayer()
 
         # Set the current player
         self._curr_player: BaseMusicPlayer = self._radio_player

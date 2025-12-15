@@ -8,16 +8,16 @@ class RadioPlayer(BaseMusicPlayer):
     def __init__(self):
         super().__init__()
 
-        # Initalize radio driver
-        self._radio = Si4703Radio(i2c_addr=0x10, reset_pin=23)
-
         # Set new volume ranges
         self._min_volume = 0
         self._max_volume = 15
 
+        # Initalize radio driver
+        self._radio = Si4703Radio(i2c_addr=0x10, reset_pin=23)
+
         # Set initial state on hardware
-        #self.set_frequency(900)
-        #self.set_volume(0.1)
+        self.set_frequency(900)
+        self.set_volume(0.1)
 
     def play(self, frequency: int | None = None, volume: float | None = None) -> None:
         if frequency is not None:

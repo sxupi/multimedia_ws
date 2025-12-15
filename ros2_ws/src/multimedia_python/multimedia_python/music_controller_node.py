@@ -58,9 +58,12 @@ class MusicControllerNode(Node):
         self._curr_freq = 900
         self._curr_volume = 0.0
 
-        # Initailize both players (without playing anything)
-        self._radio_player: RadioPlayer = RadioPlayer()
-        self._spotify_player: SpotifyPlayer = SpotifyPlayer()
+        try:
+            # Initailize both players (without playing anything)
+            self._radio_player: RadioPlayer = RadioPlayer()
+            self._spotify_player: SpotifyPlayer = SpotifyPlayer()
+        except Exception as e:
+            self.get_logger().error(f'Something went wrong: {e}')
 
         # Set the current player
         self._curr_player: BaseMusicPlayer = self._radio_player

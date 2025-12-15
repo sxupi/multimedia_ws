@@ -16,8 +16,8 @@ class RadioPlayer(BaseMusicPlayer):
         self._max_volume = 15
 
         # Set initial state on hardware
-        self.set_frequency(900)
-        self.set_volume(0.1)
+        #self.set_frequency(900)
+        #self.set_volume(0.1)
 
     def play(self, frequency: int | None = None, volume: float | None = None) -> None:
         if frequency is not None:

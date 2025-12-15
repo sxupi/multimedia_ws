@@ -73,8 +73,8 @@ class MusicControllerNode(Node):
         self._curr_player: BaseMusicPlayer = self._radio_player
         self._curr_player_tag: MusicPlayerEnum = MusicPlayerEnum.RADIO
 
-        self._header_timer = self.create_timer(1.0, self._refresh_header)
-        self._info_timer = self.create_timer(0.5, self._refresh_info_text)
+        self._header_timer = self.create_timer(2.5, self._refresh_header)
+        self._info_timer = self.create_timer(2.5, self._refresh_info_text)
 
     def _volume_change_callback(self, msg: Float32) -> None:
         new_volume: float = -1.0

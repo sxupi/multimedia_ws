@@ -32,7 +32,7 @@ class DisplayNode(Node):
         self._device = create_device()
         self._display = TwoLineDisplay(self._device)
 
-        self._timer = self.create_timer(0.02, self._refresh_display)
+        self._timer = self.create_timer(0.5, self._refresh_display)
 
         self._display.display_header('Waiting...')
         self._display.display_text('To receive some text...')
